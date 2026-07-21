@@ -1,0 +1,8 @@
+node_modules/
+main.js
+*.js.map
+.DS_Store
+.env
+.hotreload
+data.json
+package-lock.json

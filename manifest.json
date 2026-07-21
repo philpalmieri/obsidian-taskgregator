@@ -1,0 +1,10 @@
+{
+  "id": "taskgregator",
+  "name": "Taskgregator",
+  "version": "0.1.0",
+  "minAppVersion": "1.5.0",
+  "description": "A Things3-style aggregator for your native Obsidian tasks. Buckets every checkbox by its People/Projects/Areas context, with smart-list tags, priorities, dates, and optional per-task detail notes. No task isolation, your tasks stay where you wrote them.",
+  "author": "Phil Palmieri",
+  "authorUrl": "https://github.com/philpalmieri",
+  "isDesktopOnly": false
+}

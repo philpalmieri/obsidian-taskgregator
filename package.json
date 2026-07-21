@@ -1,0 +1,35 @@
+{
+  "name": "taskgregator",
+  "version": "0.1.0",
+  "description": "A Things3-style aggregator for native Obsidian tasks.",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production"
+  },
+  "keywords": [
+    "obsidian",
+    "obsidian-plugin",
+    "tasks",
+    "gtd",
+    "things3",
+    "task-management"
+  ],
+  "author": "Phil Palmieri",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "builtin-modules": "^3.3.0",
+    "esbuild": "^0.20.0",
+    "obsidian": "latest",
+    "typescript": "^5.4.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/philpalmieri/obsidian-taskgregator.git"
+  },
+  "bugs": {
+    "url": "https://github.com/philpalmieri/obsidian-taskgregator/issues"
+  },
+  "homepage": "https://github.com/philpalmieri/obsidian-taskgregator#readme"
+}
