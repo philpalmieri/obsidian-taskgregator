@@ -116,7 +116,7 @@ export class TaskgregatorSettingTab extends PluginSettingTab {
       case "showCompleted":
         return s.showCompleted;
       default:
-        return super.getControlValue(key);
+        return undefined;
     }
   }
 
@@ -145,7 +145,6 @@ export class TaskgregatorSettingTab extends PluginSettingTab {
         s.showCompleted = Boolean(value);
         break;
       default:
-        await super.setControlValue(key, value);
         return;
     }
     await this.plugin.saveSettings();
