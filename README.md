@@ -142,7 +142,7 @@ Releases are built and published by the `Release plugin` GitHub Actions workflow
 
 ### What data it touches
 
-Taskgregator reads every markdown file in your vault (via `vault.getMarkdownFiles`) so it can find and aggregate all of your checkbox tasks. That's the whole job: it needs to see the files to bucket the tasks. It does not make network requests, and it only writes back to the specific task lines and optional per-task detail notes you act on.
+Taskgregator only reads markdown files inside the folders you configure as bucket roots and inbox roots (by default `Projects`, `People`, `Areas`, and `Dailies`). It walks those folders directly rather than enumerating your whole vault, so files outside your configured roots are never opened. It does not make network requests, and it only writes back to the specific task lines and optional per-task detail notes you act on.
 
 Source layout:
 

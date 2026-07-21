@@ -1,4 +1,4 @@
-import { App, TFile } from "obsidian";
+import { App, TFile, TFolder } from "obsidian";
 import { RawTaskMeta, TaskItem, TaskStatus } from "./types";
 import { TaskgregatorSettings } from "./settings";
 
@@ -197,17 +197,51 @@ function isIgnored(path: string, settings: TaskgregatorSettings): boolean {
   return settings.ignorePaths.some((p) => path.startsWith(p));
 }
 
-/** Scan the whole vault and return all tasks. */
+/**
+ * Scan for tasks. To limit vault access to only what the plugin needs, this
+ * walks the folders the user configured as bucket/inbox roots instead of
+ * enumerating every file in the vault. Files outside those roots are never read.
+ */
 export async function scanVault(
   app: App,
   settings: TaskgregatorSettings
 ): Promise<TaskItem[]> {
-  const files = app.vault.getMarkdownFiles();
+  const files = collectScopedFiles(app, settings);
   const out: TaskItem[] = [];
   for (const file of files) {
     if (isIgnored(file.path, settings)) continue;
     const tasks = await scanFile(app, file, settings);
     out.push(...tasks);
+  }
+  return out;
+}
+
+/** Gather markdown files under the configured bucket/inbox roots only. */
+function collectScopedFiles(app: App, settings: TaskgregatorSettings): TFile[] {
+  const roots = new Set<string>([...settings.bucketRoots, ...settings.inboxRoots]);
+  const seen = new Set<string>();
+  const out: TFile[] = [];
+
+  const walk = (folder: TFolder) => {
+    for (const child of folder.children) {
+      if (child instanceof TFolder) {
+        walk(child);
+      } else if (child instanceof TFile && child.extension === "md") {
+        if (!seen.has(child.path)) {
+          seen.add(child.path);
+          out.push(child);
+        }
+      }
+    }
+  };
+
+  for (const root of roots) {
+    const dir = app.vault.getAbstractFileByPath(root.replace(/\/$/, ""));
+    if (dir instanceof TFolder) walk(dir);
+    else if (dir instanceof TFile && dir.extension === "md" && !seen.has(dir.path)) {
+      seen.add(dir.path);
+      out.push(dir);
+    }
   }
   return out;
 }
