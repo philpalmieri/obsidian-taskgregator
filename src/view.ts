@@ -2,7 +2,7 @@ import { ItemView, Menu, Modal, WorkspaceLeaf, setIcon, App } from "obsidian";
 import { TaskItem, TreeNode } from "./types";
 import { TaskStore } from "./store";
 import { TaskWriter } from "./writer";
-import { deriveBucket } from "./parser";
+import { nodeKeyForFile } from "./parser";
 import { TaskgregatorSettings } from "./settings";
 
 export const VIEW_TYPE_TASKGREGATOR = "taskgregator-view";
@@ -27,6 +27,8 @@ export class TaskgregatorView extends ItemView {
   selection: Selection = { type: "today" };
   sidebarEl!: HTMLElement;
   mainEl!: HTMLElement;
+  // Node keys the user has collapsed (persists across re-renders/reindex).
+  collapsed: Set<string> = new Set();
 
   constructor(leaf: WorkspaceLeaf, deps: ViewDeps) {
     super(leaf);
@@ -60,16 +62,13 @@ export class TaskgregatorView extends ItemView {
 
   /** Focus the node that contains a given source file (used by external reveal). */
   revealTask(filePath: string): void {
-    const { bucketRoot, bucketFile } = deriveBucket(filePath, this.deps.settings);
-    if (this.deps.settings.inboxRoots.includes(bucketRoot)) {
-      this.selection = { type: "node", key: bucketRoot, label: bucketRoot };
-    } else {
-      this.selection = {
-        type: "node",
-        key: `${bucketRoot}/${bucketFile}`,
-        label: bucketFile,
-      };
-    }
+    const { fileKey, flat, rootName } = nodeKeyForFile(filePath, this.deps.settings);
+    const base = filePath.split("/").pop()?.replace(/\.md$/i, "") || filePath;
+    this.selection = {
+      type: "node",
+      key: fileKey,
+      label: flat ? rootName : base,
+    };
     this.render();
   }
 
@@ -124,9 +123,27 @@ export class TaskgregatorView extends ItemView {
   private renderTreeNode(parent: HTMLElement, node: TreeNode, depth: number): void {
     const active =
       this.selection.type === "node" && this.selection.key === node.key;
+    const hasChildren = node.children.some((c) => c.count > 0);
+    const isCollapsed = this.collapsed.has(node.key);
+
     const row = parent.createDiv({ cls: "tg-tree-row" + (active ? " is-active" : "") });
     row.style.paddingLeft = 8 + depth * 14 + "px";
-    const icon = node.kind === "root" ? "folder" : "file-text";
+
+    // Twisty (caret) toggles collapse without changing selection.
+    const twisty = row.createSpan({ cls: "tg-twisty" });
+    if (hasChildren) {
+      setIcon(twisty, isCollapsed ? "chevron-right" : "chevron-down");
+      twisty.onclick = (e) => {
+        e.stopPropagation();
+        if (isCollapsed) this.collapsed.delete(node.key);
+        else this.collapsed.add(node.key);
+        this.render();
+      };
+    } else {
+      twisty.addClass("tg-twisty-empty");
+    }
+
+    const icon = node.kind === "root" || node.kind === "folder" ? "folder" : "file-text";
     const ic = row.createSpan({ cls: "tg-tree-icon" });
     setIcon(ic, icon);
     row.createSpan({ cls: "tg-tree-label", text: node.label });
@@ -135,6 +152,8 @@ export class TaskgregatorView extends ItemView {
       this.selection = { type: "node", key: node.key, label: node.label };
       this.render();
     };
+
+    if (isCollapsed) return;
     for (const child of node.children) {
       if (child.count === 0) continue;
       this.renderTreeNode(parent, child, depth + 1);

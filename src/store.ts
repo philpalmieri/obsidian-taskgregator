@@ -1,7 +1,7 @@
 import { App } from "obsidian";
 import { TaskItem, TreeNode } from "./types";
 import { TaskgregatorSettings } from "./settings";
-import { scanVault } from "./parser";
+import { scanVault, nodeKeyForFile } from "./parser";
 
 export class TaskStore {
   app: App;
@@ -40,8 +40,9 @@ export class TaskStore {
    * Inbox roots collapse to a single node per root (flat).
    */
   /**
-   * Build the context tree: bucketRoot -> file -> tasks, with rolled-up open counts.
-   * Inbox roots collapse to a single node per root (flat).
+   * Build the context tree: bucketRoot -> nested folders -> file -> tasks, with
+   * rolled-up (deduped) open counts at every level. Inbox roots and the catch-all
+   * "Other" root collapse to a single flat node.
    * Cross-index: a task that links to a file under a bucket root also appears under
    * that file's node, even when authored elsewhere.
    */
@@ -51,48 +52,57 @@ export class TaskStore {
       this.settings.inboxRoots,
       ["Other"]
     );
-    const rootMap = new Map<string, TreeNode>();
-    // Track membership as Sets to dedupe authored + linked tasks per node.
-    const nodeIds = new Map<string, Set<string>>();
+    const nodeMap = new Map<string, TreeNode>();
+    const directIds = new Map<string, Set<string>>();
 
-    const getRoot = (name: string): TreeNode => {
-      let r = rootMap.get(name);
-      if (!r) {
-        r = { key: name, label: name, kind: "root", children: [], taskIds: [], count: 0 };
-        rootMap.set(name, r);
-        nodeIds.set(r.key, new Set());
+    const ensureNode = (
+      key: string,
+      label: string,
+      kind: TreeNode["kind"]
+    ): TreeNode => {
+      let n = nodeMap.get(key);
+      if (!n) {
+        n = { key, label, kind, children: [], taskIds: [], count: 0 };
+        nodeMap.set(key, n);
+        directIds.set(key, new Set());
       }
-      return r;
+      return n;
     };
 
-    const getFileNode = (root: TreeNode, rootName: string, fileBase: string): TreeNode => {
-      const fileKey = `${rootName}/${fileBase}`;
-      let fileNode = root.children.find((c) => c.key === fileKey);
+    // Resolve a file path to the node a task should attach to, creating the
+    // root -> folder... -> file chain as needed.
+    const fileNodeFor = (filePath: string): TreeNode => {
+      const { rootName, flat } = nodeKeyForFile(filePath, this.settings);
+      const root = ensureNode(rootName, rootName, "root");
+      if (flat) return root;
+      const parts = filePath.split("/");
+      let parent = root;
+      let parentKey = rootName;
+      // Intermediate folders (between root and file).
+      for (let i = 1; i < parts.length - 1; i++) {
+        const folderKey = `${parentKey}/${parts[i]}`;
+        let node = nodeMap.get(folderKey);
+        if (!node) {
+          node = ensureNode(folderKey, parts[i], "folder");
+          parent.children.push(node);
+        }
+        parent = node;
+        parentKey = folderKey;
+      }
+      const base = parts[parts.length - 1].replace(/\.md$/i, "");
+      const fileKey = `${parentKey}/${base}`;
+      let fileNode = nodeMap.get(fileKey);
       if (!fileNode) {
-        fileNode = {
-          key: fileKey,
-          label: fileBase,
-          kind: "file",
-          children: [],
-          taskIds: [],
-          count: 0,
-        };
-        root.children.push(fileNode);
-        nodeIds.set(fileNode.key, new Set());
+        fileNode = ensureNode(fileKey, base, "file");
+        parent.children.push(fileNode);
       }
       return fileNode;
     };
 
     // Pass 1: authored location.
     for (const t of visible) {
-      const root = getRoot(t.bucketRoot);
-      const isInbox = this.settings.inboxRoots.includes(t.bucketRoot);
-      if (isInbox) {
-        nodeIds.get(root.key)!.add(t.id);
-      } else {
-        const fileNode = getFileNode(root, t.bucketRoot, t.bucketFile);
-        nodeIds.get(fileNode.key)!.add(t.id);
-      }
+      const node = fileNodeFor(t.filePath);
+      directIds.get(node.key)!.add(t.id);
     }
 
     // Pass 2: cross-index by wikilink into the linked file's node.
@@ -101,31 +111,31 @@ export class TaskStore {
         const dest = this.app.metadataCache.getFirstLinkpathDest(link, t.filePath);
         if (!dest) continue;
         const parts = dest.path.split("/");
-        if (parts.length < 2) continue;
-        const rootName = parts[0];
-        if (!this.settings.bucketRoots.includes(rootName)) continue;
-        const fileBase = parts[parts.length - 1].replace(/\.md$/i, "");
-        const root = getRoot(rootName);
-        const fileNode = getFileNode(root, rootName, fileBase);
-        nodeIds.get(fileNode.key)!.add(t.id);
+        if (parts.length < 2 || !this.settings.bucketRoots.includes(parts[0])) continue;
+        const node = fileNodeFor(dest.path);
+        directIds.get(node.key)!.add(t.id);
       }
     }
 
-    // Materialize taskIds, rollup counts, sort.
+    // Roll up counts (deduped) and sort, bottom-up.
+    const rollup = (node: TreeNode): Set<string> => {
+      const set = new Set<string>(directIds.get(node.key) || []);
+      node.taskIds = Array.from(directIds.get(node.key) || []);
+      for (const c of node.children) {
+        for (const id of rollup(c)) set.add(id);
+      }
+      node.children.sort(
+        (a, b) => b.count - a.count || a.label.localeCompare(b.label)
+      );
+      node.count = set.size;
+      return set;
+    };
+
     const roots: TreeNode[] = [];
     for (const name of rootsOrder) {
-      const r = rootMap.get(name);
+      const r = nodeMap.get(name);
       if (!r) continue;
-      r.taskIds = Array.from(nodeIds.get(r.key) || []);
-      for (const c of r.children) {
-        c.taskIds = Array.from(nodeIds.get(c.key) || []);
-        c.count = c.taskIds.length;
-      }
-      r.children.sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
-      // Root rollup as the union of its own tasks + all children (dedupe).
-      const union = new Set<string>(r.taskIds);
-      for (const c of r.children) for (const id of c.taskIds) union.add(id);
-      r.count = union.size;
+      rollup(r);
       roots.push(r);
     }
     return roots;

@@ -74,6 +74,19 @@
 }
 .taskgregator .tg-tree-icon svg { width: 15px; height: 15px; }
 
+.taskgregator .tg-twisty {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  flex-shrink: 0;
+  opacity: 0.6;
+  cursor: pointer;
+}
+.taskgregator .tg-twisty:hover { opacity: 1; }
+.taskgregator .tg-twisty svg { width: 14px; height: 14px; }
+.taskgregator .tg-twisty-empty { cursor: default; }
+
 .taskgregator .tg-tree-label {
   flex: 1;
   white-space: nowrap;

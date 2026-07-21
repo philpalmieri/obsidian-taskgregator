@@ -173,6 +173,26 @@ export function deriveBucket(
   };
 }
 
+/**
+ * Resolve a file path to its context-tree placement.
+ * `flat` roots (inbox folders, and the catch-all "Other") group tasks directly
+ * on the root node; everything else nests one node per folder segment down to
+ * the file. `fileKey` is the key of the node the task attaches to.
+ */
+export function nodeKeyForFile(
+  filePath: string,
+  settings: TaskgregatorSettings
+): { rootName: string; flat: boolean; fileKey: string } {
+  const parts = filePath.split("/");
+  const root = parts.length > 1 ? parts[0] : "Other";
+  const inBucket = settings.bucketRoots.includes(root);
+  const inInbox = settings.inboxRoots.includes(root);
+  const rootName = inBucket || inInbox ? root : "Other";
+  const flat = inInbox || rootName === "Other";
+  const fileKey = flat ? rootName : filePath.replace(/\.md$/i, "");
+  return { rootName, flat, fileKey };
+}
+
 function isIgnored(path: string, settings: TaskgregatorSettings): boolean {
   return settings.ignorePaths.some((p) => path.startsWith(p));
 }

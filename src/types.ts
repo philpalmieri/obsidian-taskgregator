@@ -34,9 +34,9 @@ export interface TaskItem {
 }
 
 export interface TreeNode {
-  key: string; // unique path key e.g. "Projects/Deployment Tracker"
+  key: string; // unique path key e.g. "Projects/Roadmap/Q1 Planning"
   label: string;
-  kind: "root" | "file" | "tag" | "smart";
+  kind: "root" | "folder" | "file" | "tag" | "smart";
   children: TreeNode[];
   taskIds: string[]; // tasks directly at this node
   count: number; // rolled-up open count including descendants
