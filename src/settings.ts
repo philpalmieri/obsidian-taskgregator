@@ -30,7 +30,7 @@ export interface TaskgregatorSettings {
 
 export const DEFAULT_SETTINGS: TaskgregatorSettings = {
   bucketRoots: ["Projects", "People", "Areas"],
-  ignorePaths: ["Archive/", "Templates/", ".obsidian/"],
+  ignorePaths: ["Archive/", "Templates/"],
   inboxRoots: ["Dailies"],
   priorityTags: ["p1", "p2", "p3"],
   smartLists: [
@@ -57,7 +57,7 @@ export class TaskgregatorSettingTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
 
-    containerEl.createEl("h2", { text: "Taskgregator" });
+    new Setting(containerEl).setName("Context").setHeading();
 
     new Setting(containerEl)
       .setName("Bucket roots")

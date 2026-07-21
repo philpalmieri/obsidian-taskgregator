@@ -319,7 +319,7 @@ export class TaskgregatorView extends ItemView {
       note.setAttr("aria-label", "Open detail note");
       note.onclick = (ev) => {
         ev.stopPropagation();
-        this.deps.writer.openPath(task.sidecarPath as string);
+        void this.deps.writer.openPath(task.sidecarPath as string);
       };
     }
 
@@ -387,7 +387,7 @@ export class TaskgregatorView extends ItemView {
     const link = task.blockId
       ? `${task.filePath}#^${task.blockId}`
       : task.filePath;
-    this.app.workspace.openLinkText(link, "", false);
+    void this.app.workspace.openLinkText(link, "", false);
   }
 }
 
@@ -514,7 +514,7 @@ function renderTextWithLinks(
     const a = el.createEl("a", { cls: "tg-link internal-link", text: label });
     a.onclick = (ev) => {
       ev.preventDefault();
-      app.workspace.openLinkText(target, "", false);
+      void app.workspace.openLinkText(target, "", false);
     };
     last = m.index + m[0].length;
   }

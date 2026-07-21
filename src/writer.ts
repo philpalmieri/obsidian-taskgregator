@@ -244,7 +244,7 @@ export class TaskWriter {
       if (!this.app.vault.getAbstractFileByPath(cur)) {
         try {
           await this.app.vault.createFolder(cur);
-        } catch (e) {
+        } catch {
           // Already exists / race; ignore.
         }
       }

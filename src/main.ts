@@ -29,7 +29,9 @@ export default class Taskgregator extends Plugin {
       writer: this.writer,
       settings: this.settings,
       reindexFile: async (path: string) => this.reindexFile(path),
-      refresh: () => this.reindex(),
+      refresh: () => {
+        void this.reindex();
+      },
     };
 
     this.registerView(
@@ -40,13 +42,13 @@ export default class Taskgregator extends Plugin {
     this.addRibbonIcon("check-check", "Open Taskgregator", () => this.activateView());
 
     this.addCommand({
-      id: "open-taskgregator",
-      name: "Open Taskgregator",
+      id: "open",
+      name: "Open panel",
       callback: () => this.activateView(),
     });
 
     this.addCommand({
-      id: "reindex-taskgregator",
+      id: "reindex",
       name: "Reindex tasks",
       callback: () => this.reindex(),
     });
@@ -96,7 +98,7 @@ export default class Taskgregator extends Plugin {
     }
     await this.store.rebuild();
     this.refreshViews();
-    workspace.revealLeaf(leaf);
+    await workspace.revealLeaf(leaf);
   }
 
   private scheduleRefresh(): void {
@@ -211,7 +213,8 @@ export default class Taskgregator extends Plugin {
   }
 
   async loadSettings(): Promise<void> {
-    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+    const data = (await this.loadData()) as Partial<TaskgregatorSettings> | null;
+    this.settings = Object.assign({}, DEFAULT_SETTINGS, data ?? {});
   }
 
   async saveSettings(): Promise<void> {

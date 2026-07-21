@@ -89,7 +89,7 @@ export function parseLine(
     doneDate: dateAfter(body, EMOJI.done),
     cancelledDate: dateAfter(body, EMOJI.cancelled),
   };
-  const recMatch = body.match(new RegExp(EMOJI.recurrence + "\\s*([^📅🛫⏳➕✅❌🔺⏫🔼🔽⏬]+)"));
+  const recMatch = body.match(new RegExp(EMOJI.recurrence + "\\s*([^📅🛫⏳➕✅❌🔺⏫🔼🔽⏬]+)", "u"));
   if (recMatch) meta.recurrence = recMatch[1].trim();
 
   // Tags.
