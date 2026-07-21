@@ -138,6 +138,12 @@ npm run dev     # watch build
 npm run build   # type-check + production bundle
 ```
 
+Releases are built and published by the `Release plugin` GitHub Actions workflow on every `x.y.z` tag, which also generates [artifact attestations](https://docs.github.com/en/actions/security-for-github-actions/using-artifact-attestations/using-artifact-attestations-to-establish-provenance-for-builds) so you can cryptographically verify each asset was built from this source.
+
+### What data it touches
+
+Taskgregator reads every markdown file in your vault (via `vault.getMarkdownFiles`) so it can find and aggregate all of your checkbox tasks. That's the whole job: it needs to see the files to bucket the tasks. It does not make network requests, and it only writes back to the specific task lines and optional per-task detail notes you act on.
+
 Source layout:
 
 | File | Responsibility |
