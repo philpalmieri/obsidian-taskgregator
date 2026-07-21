@@ -1,9 +1,9 @@
 {
   "id": "taskgregator",
   "name": "Taskgregator",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "minAppVersion": "1.5.0",
-  "description": "Aggregate your native Obsidian tasks into one fast dashboard, inspired by the best dedicated to-do apps. Buckets every checkbox by its People, Projects, and Areas context, with smart lists, priorities, dates, sorting, grouping, and per-task notes.",
+  "description": "Aggregate your native markdown tasks into one fast dashboard, inspired by the best dedicated to-do apps. Buckets every checkbox by its People, Projects, and Areas context, with smart lists, priorities, dates, sorting, grouping, and per-task notes.",
   "author": "Phil Palmieri",
   "authorUrl": "https://github.com/philpalmieri",
   "isDesktopOnly": false
