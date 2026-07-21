@@ -6,7 +6,7 @@ Taskgregator sucks up every checkbox task across your vault and organizes it by 
 
 Think of it as a task dashboard that reads and writes your real notes, not a separate task silo.
 
-> Status: early (v0.3.0). Built for a single-user vault, works against plain markdown checkboxes and [Tasks-plugin](https://publish.obsidian.md/tasks/) style emoji metadata. No runtime dependency on Dataview or the Tasks plugin.
+> Works against plain markdown checkboxes and [Tasks-plugin](https://publish.obsidian.md/tasks/) style emoji metadata. No runtime dependency on Dataview or the Tasks plugin.
 
 ---
 
