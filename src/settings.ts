@@ -1,4 +1,4 @@
-import { App, PluginSettingTab, Setting } from "obsidian";
+import { App, PluginSettingTab, Setting, SettingDefinitionItem } from "obsidian";
 import type Taskgregator from "./main";
 
 export interface SmartList {
@@ -51,6 +51,104 @@ export class TaskgregatorSettingTab extends PluginSettingTab {
   constructor(app: App, plugin: Taskgregator) {
     super(app, plugin);
     this.plugin = plugin;
+  }
+
+  /**
+   * Declarative definitions so the settings are indexed by Obsidian's settings
+   * search on 1.13.0+. Rendering is still handled by display() below (which
+   * keeps compatibility with older app versions). The array/CSV-backed values
+   * are translated by getControlValue/setControlValue.
+   */
+  getSettingDefinitions(): SettingDefinitionItem[] {
+    return [
+      {
+        name: "Bucket roots",
+        desc: "Comma-separated top-level folders whose files become context buckets.",
+        control: { type: "text", key: "bucketRoots" },
+      },
+      {
+        name: "Inbox roots",
+        desc: "Folders treated as a flat inbox (tasks grouped together, not per file). e.g. Dailies.",
+        control: { type: "text", key: "inboxRoots" },
+      },
+      {
+        name: "Ignore paths",
+        desc: "Comma-separated path prefixes to exclude from indexing.",
+        control: { type: "text", key: "ignorePaths" },
+      },
+      {
+        name: "Priority tags",
+        desc: "Highest-first, comma-separated (without #). e.g. p1, p2, p3.",
+        control: { type: "text", key: "priorityTags" },
+      },
+      {
+        name: "Smart lists",
+        desc: "Cross-cutting tag lists. Format: Name:tag, comma-separated.",
+        control: { type: "textarea", key: "smartLists" },
+      },
+      {
+        name: "Detail-note folder",
+        desc: "Where per-task detail notes (sidecars) are stored.",
+        control: { type: "text", key: "sidecarFolder" },
+      },
+      {
+        name: "Show completed tasks",
+        control: { type: "toggle", key: "showCompleted" },
+      },
+    ];
+  }
+
+  getControlValue(key: string): unknown {
+    const s = this.plugin.settings;
+    switch (key) {
+      case "bucketRoots":
+        return s.bucketRoots.join(", ");
+      case "inboxRoots":
+        return s.inboxRoots.join(", ");
+      case "ignorePaths":
+        return s.ignorePaths.join(", ");
+      case "priorityTags":
+        return s.priorityTags.join(", ");
+      case "smartLists":
+        return s.smartLists.map((x) => `${x.name}:${x.tag}`).join(", ");
+      case "sidecarFolder":
+        return s.sidecarFolder;
+      case "showCompleted":
+        return s.showCompleted;
+      default:
+        return super.getControlValue(key);
+    }
+  }
+
+  async setControlValue(key: string, value: unknown): Promise<void> {
+    const s = this.plugin.settings;
+    switch (key) {
+      case "bucketRoots":
+        s.bucketRoots = splitList(String(value));
+        break;
+      case "inboxRoots":
+        s.inboxRoots = splitList(String(value));
+        break;
+      case "ignorePaths":
+        s.ignorePaths = splitList(String(value));
+        break;
+      case "priorityTags":
+        s.priorityTags = splitList(String(value)).map((x) => x.replace(/^#/, ""));
+        break;
+      case "smartLists":
+        s.smartLists = parseSmartLists(String(value));
+        break;
+      case "sidecarFolder":
+        s.sidecarFolder = String(value).trim().replace(/\/$/, "");
+        break;
+      case "showCompleted":
+        s.showCompleted = Boolean(value);
+        break;
+      default:
+        await super.setControlValue(key, value);
+        return;
+    }
+    await this.plugin.saveSettings();
   }
 
   display(): void {
@@ -116,12 +214,7 @@ export class TaskgregatorSettingTab extends PluginSettingTab {
             this.plugin.settings.smartLists.map((s) => `${s.name}:${s.tag}`).join(", ")
           )
           .onChange(async (v) => {
-            this.plugin.settings.smartLists = splitList(v)
-              .map((pair) => {
-                const [name, tag] = pair.split(":");
-                return { name: (name || "").trim(), tag: (tag || "").trim().replace(/^#/, "") };
-              })
-              .filter((s) => s.name && s.tag);
+            this.plugin.settings.smartLists = parseSmartLists(v);
             await this.plugin.saveSettings();
           })
       );
@@ -163,4 +256,13 @@ function splitList(v: string): string[] {
     .split(",")
     .map((s) => s.trim())
     .filter((s) => s.length > 0);
+}
+
+function parseSmartLists(v: string): SmartList[] {
+  return splitList(v)
+    .map((pair) => {
+      const [name, tag] = pair.split(":");
+      return { name: (name || "").trim(), tag: (tag || "").trim().replace(/^#/, "") };
+    })
+    .filter((s) => s.name && s.tag);
 }
