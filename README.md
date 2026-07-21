@@ -1,12 +1,12 @@
 # Taskgregator
 
-**A Things3-style aggregator for your native Obsidian tasks.**
+**An aggregator for your native Obsidian tasks, inspired by the best dedicated to-do apps (think Things, Todoist, TickTick).**
 
 Taskgregator sucks up every checkbox task across your vault and organizes it by context (Projects, People, Areas, whatever folders you choose), without moving your notes or locking tasks into their own files. Your tasks stay exactly where you wrote them, in the markdown they already live in. Taskgregator just gives you a fast, focused place to see, prioritize, schedule, and complete them.
 
 Think of it as a task dashboard that reads and writes your real notes, not a separate task silo.
 
-> Status: early (v0.1.0). Built for a single-user vault, works against plain markdown checkboxes and [Tasks-plugin](https://publish.obsidian.md/tasks/) style emoji metadata. No runtime dependency on Dataview or the Tasks plugin.
+> Status: early (v0.3.0). Built for a single-user vault, works against plain markdown checkboxes and [Tasks-plugin](https://publish.obsidian.md/tasks/) style emoji metadata. No runtime dependency on Dataview or the Tasks plugin.
 
 ---
 
