@@ -8,9 +8,7 @@ Think of it as a task dashboard that reads and writes your real notes, not a sep
 
 > Works against plain markdown checkboxes and [Tasks-plugin](https://publish.obsidian.md/tasks/) style emoji metadata. No runtime dependency on Dataview or the Tasks plugin.
 
----
-
-## Why
+## Core ideas
 
 Most task plugins either make you adopt a whole new system or isolate each task in its own document. Taskgregator takes the opposite stance:
 
@@ -18,34 +16,37 @@ Most task plugins either make you adopt a whole new system or isolate each task 
 - Where a task lives (and what it links to) *is* its context. A task in `Projects/Website Redesign.md` belongs to that project. A task that mentions `[[People/Alex]]` also belongs to Alex.
 - You should be able to see everything in one place, act on it, and jump straight back to the note it came from.
 
-## What it looks like
-
-A two-pane view: a context sidebar on the left (smart lists + a roll-up tree of your folders), and a task list on the right.
-
-![Main view wireframe](assets/wireframe-main.png)
-
-*(Wireframes are intentionally low-fidelity. Names and projects shown are fictional.)*
-
-## Core ideas
-
 ### One task, many places
 
 A task is indexed by its location, its `[[wikilinks]]`, its `#tags`, and its dates, all at once. No duplication, no moving notes around.
 
 ![Cross-index wireframe](assets/wireframe-crossindex.png)
 
-So a task authored in a project note that references a person shows up under **both** that project **and** that person in the sidebar, and in your date-based smart lists if it has a due date.
+So a task authored in a project note that references a person shows up under **both** that project **and** that person in the navigator, and in your date-based smart lists if it has a due date.
 
 ### Right-click anywhere
 
-Because Taskgregator understands your task lines, you get a context menu on any task line in the normal editor, not just inside the plugin panel. Set priority, add a due date, toggle `#today`, open a detail note, or reveal the task in the Taskgregator panel.
+Because Taskgregator understands your task lines, you get a context menu on any task line in the normal editor, not just inside the plugin panel. Set priority, add a due date, toggle `#today`, open a detail note, or reveal the task in the task list.
 
 ![Context menu wireframe](assets/wireframe-contextmenu.png)
+
+## What it looks like
+
+Three surfaces that share one index:
+
+- **Navigator** (left sidebar): smart lists plus a roll-up tree of your context folders. Pick one to drive the list.
+- **Task list** (main area): the tasks for the current selection, with sort and grouping controls.
+- **Context sidebar** (right sidebar): follows the note you're editing and shows its tasks, filtered by **Page / Section / Reference** (or **All**).
+
+![Main view wireframe](assets/wireframe-main.png)
+
+*(Wireframes are intentionally low-fidelity. Names and projects shown are fictional.)*
 
 ## Features
 
 - **Context tree** with roll-up counts. Configure which top-level folders become buckets (default: `Projects`, `People`, `Areas`). Files become sub-nodes; parent nodes aggregate everything beneath them.
 - **Cross-indexing by wikilink.** A task that links `[[People/Alex]]` appears under Alex's node even though it was authored elsewhere.
+- **Context sidebar** that follows the active note and scopes its tasks by Page, Section (folder subtree / folder note), or Reference.
 - **Smart lists** driven by tags: Today, Follow-up, Snippet Ideas, Someday (all configurable). Plus built-in Today (by due date), Flagged (by priority), and All.
 - **Inline editing** from the panel: toggle done/cancelled, cycle priority, set due/start dates, add tags, jump to source, all written back to the original markdown line.
 - **Priority** using Tasks-plugin emoji signifiers (🔺 ⏫ 🔼) so it stays compatible with what you already use.
@@ -82,78 +83,28 @@ Recognized signifiers:
 | `[[link]]` | Cross-index target |
 | `^blockid` | Stable identity (added lazily) |
 
-## Install
-
-### Manual (recommended while in early development)
-
-1. Download `main.js`, `manifest.json`, and `styles.css` from the [latest release](https://github.com/philpalmieri/obsidian-taskgregator/releases).
-2. Copy them into your vault at `<vault>/.obsidian/plugins/taskgregator/`.
-3. Reload Obsidian, then enable **Taskgregator** under Settings → Community plugins.
-
-### From source
-
-```bash
-git clone https://github.com/philpalmieri/obsidian-taskgregator.git
-cd obsidian-taskgregator
-npm install
-npm run build
-```
-
-Then copy `main.js`, `manifest.json`, and `styles.css` into `<vault>/.obsidian/plugins/taskgregator/`.
-
-### Via BRAT
-
-Add `philpalmieri/obsidian-taskgregator` as a beta plugin in [BRAT](https://github.com/TfTHacker/obsidian42-brat).
-
 ## Usage
 
-- Open the panel from the ribbon (the ✓✓ icon) or run **Taskgregator: Open** from the command palette.
-- Click a smart list or a tree node to filter the task list.
+- The **navigator** opens in the left sidebar (its ✓✓ tab sits next to Files and Search). You can also run **Taskgregator: Open panel** from the command palette.
+- Click a smart list or a tree node to load its tasks in the main list.
 - On a task card: click the checkbox to complete, the flag to cycle priority, the `⋯` menu for dates/detail-note/cancel, a chip to jump to its source, or the 📝 chip to open its detail note.
+- The **context sidebar** (right) tracks the note you're editing; use the Page / Section / Reference tabs to change scope.
 - Right-click any task line in the editor for the same actions inline.
 
 ## Settings
 
-- **Bucket roots** — folders that become top-level context buckets (default `Projects, People, Areas`).
-- **Inbox roots** — folders treated as a flat inbox instead of per-file (default `Dailies`).
-- **Ignore paths** — path prefixes to exclude from indexing.
-- **Priority tags** — fallback priority tags (default `p1, p2, p3`).
-- **Smart lists** — cross-cutting tag lists (`Name:tag` pairs).
-- **Detail-note folder** — where sidecars are stored (default `Taskgregator/tasksData`).
-- **Show completed tasks** — include done/cancelled tasks in the index.
+- **Bucket roots**: folders that become top-level context buckets (default `Projects, People, Areas`).
+- **Inbox roots**: folders treated as a flat inbox instead of per-file (default `Dailies`).
+- **Ignore paths**: path prefixes to exclude from indexing.
+- **Priority tags**: fallback priority tags (default `p1, p2, p3`).
+- **Smart lists**: cross-cutting tag lists (`Name:tag` pairs).
+- **Detail-note folder**: where sidecars are stored (default `Taskgregator/tasksData`).
+- **Show completed tasks**: include done/cancelled tasks in the index.
+- **Context sidebar**: enable the right-sidebar panel that follows the active note.
 
-## Roadmap
-
-- Inline priority/action widgets rendered directly on tasks in live-preview and reading mode.
-- "Convert task → Project" to promote a task (and its detail note) into a full project file.
-- Nested sub-task hierarchies.
-- Saved/custom views and filters.
-- Drag to reorder / reschedule.
-
-## Development
-
-```bash
-npm install
-npm run dev     # watch build
-npm run build   # type-check + production bundle
-```
-
-Releases are built and published by the `Release plugin` GitHub Actions workflow on every `x.y.z` tag, which also generates [artifact attestations](https://docs.github.com/en/actions/security-for-github-actions/using-artifact-attestations/using-artifact-attestations-to-establish-provenance-for-builds) so you can cryptographically verify each asset was built from this source.
-
-### What data it touches
+## What data it touches
 
 Taskgregator only reads markdown files inside the folders you configure as bucket roots and inbox roots (by default `Projects`, `People`, `Areas`, and `Dailies`). It walks those folders directly rather than enumerating your whole vault, so files outside your configured roots are never opened. It does not make network requests, and it only writes back to the specific task lines and optional per-task detail notes you act on.
-
-Source layout:
-
-| File | Responsibility |
-|------|----------------|
-| `src/parser.ts` | Parse markdown lines into task objects; scan the vault. |
-| `src/store.ts` | Index tasks, build the context tree, cross-index, smart lists. |
-| `src/writer.ts` | Pure line transforms + write-back via `vault.process`. |
-| `src/view.ts` | The panel UI (sidebar + task list). |
-| `src/main.ts` | Plugin lifecycle, commands, editor context menu. |
-| `src/settings.ts` | Settings model + settings tab. |
 
 ## License
 
