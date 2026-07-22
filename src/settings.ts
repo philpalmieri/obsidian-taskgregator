@@ -183,7 +183,7 @@ export class TaskgregatorSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("Inbox roots")
-      .setDesc("Folders treated as a flat inbox (tasks grouped together, not per file). e.g. Dailies.")
+      .setDesc("Folders treated as a flat inbox (tasks grouped together, not per file). E.g. Dailies.")
       .addText((t) =>
         t
           .setValue(this.plugin.settings.inboxRoots.join(", "))
@@ -207,7 +207,7 @@ export class TaskgregatorSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("Priority tags")
-      .setDesc("Highest-first, comma-separated (without #). e.g. p1, p2, p3.")
+      .setDesc("Highest-first, comma-separated without #, for example p1, p2, p3.")
       .addText((t) =>
         t
           .setValue(this.plugin.settings.priorityTags.join(", "))
@@ -219,7 +219,7 @@ export class TaskgregatorSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("Smart lists")
-      .setDesc("Cross-cutting tag lists. Format: Name:tag, comma-separated. e.g. Today:today, Follow-up:followup.")
+      .setDesc("Cross-cutting tag lists as name:tag pairs, comma-separated. For example: today:today, followup:someday.")
       .addTextArea((t) =>
         t
           .setValue(

@@ -301,7 +301,7 @@ export default class Taskgregator extends Plugin {
 
     menu.addItem((i) =>
       i
-        .setTitle("Taskgregator: Reveal in Taskgregator")
+        .setTitle("Taskgregator: Reveal in task list")
         .setIcon("check-check")
         .onClick(async () => {
           await this.activateView();
