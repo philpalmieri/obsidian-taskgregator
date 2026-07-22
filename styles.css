@@ -264,3 +264,95 @@
   font-size: 10px;
   color: var(--text-faint);
 }
+
+/* Context sidebar (follows the active file) */
+.taskgregator.tg-context {
+  padding: 10px 8px;
+  overflow-y: auto;
+}
+.taskgregator.tg-context .tg-context-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 2px 0;
+}
+.taskgregator.tg-context .tg-context-name {
+  font-size: 14px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.taskgregator.tg-context .tg-count {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-faint);
+}
+.taskgregator.tg-context .tg-context-sub {
+  font-size: 10px;
+  color: var(--text-faint);
+  margin: 0 2px 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.taskgregator.tg-context .tg-empty {
+  color: var(--text-muted);
+  font-size: 12px;
+  padding: 12px 4px;
+}
+
+/* Split views: nav (left dock) + list (center) */
+.taskgregator.tg-list-view {
+  height: 100%;
+}
+.taskgregator.tg-list-view .tg-main {
+  height: 100%;
+  width: 100%;
+}
+.taskgregator.tg-nav-view {
+  height: 100%;
+  overflow-y: auto;
+  padding: 8px 4px;
+}
+
+/* Context sidebar filter tabs (subtle) */
+.taskgregator.tg-context .tg-tabs {
+  display: flex;
+  gap: 2px;
+  margin: 8px 0 4px;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+.taskgregator.tg-context .tg-tab {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  font-size: var(--font-ui-smaller);
+  color: var(--text-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  user-select: none;
+}
+.taskgregator.tg-context .tg-tab:hover {
+  color: var(--text-normal);
+}
+.taskgregator.tg-context .tg-tab.is-active {
+  color: var(--text-normal);
+  border-bottom-color: var(--interactive-accent);
+}
+.taskgregator.tg-context .tg-tab.is-empty {
+  opacity: 0.4;
+}
+.taskgregator.tg-context .tg-tab-count {
+  font-size: var(--font-ui-smaller);
+  color: var(--text-faint);
+  background: var(--background-modifier-hover);
+  border-radius: 6px;
+  padding: 0 5px;
+  line-height: 1.4;
+}
+.taskgregator.tg-context .tg-tab.is-active .tg-tab-count {
+  color: var(--text-muted);
+}

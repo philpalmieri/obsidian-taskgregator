@@ -26,6 +26,8 @@ export interface TaskgregatorSettings {
   showCompleted: boolean;
   // Emoji signifiers (Tasks-plugin compatible).
   useEmojiMetadata: boolean;
+  // Auto-open the context sidebar (follows the active file) on startup.
+  enableContextSidebar: boolean;
 }
 
 export const DEFAULT_SETTINGS: TaskgregatorSettings = {
@@ -43,6 +45,7 @@ export const DEFAULT_SETTINGS: TaskgregatorSettings = {
   dateFormat: "YYYY-MM-DD",
   showCompleted: false,
   useEmojiMetadata: true,
+  enableContextSidebar: true,
 };
 
 export class TaskgregatorSettingTab extends PluginSettingTab {
@@ -95,6 +98,11 @@ export class TaskgregatorSettingTab extends PluginSettingTab {
         name: "Show completed tasks",
         control: { type: "toggle", key: "showCompleted" },
       },
+      {
+        name: "Context sidebar",
+        desc: "Auto-open the file-context task panel in the right sidebar on startup.",
+        control: { type: "toggle", key: "enableContextSidebar" },
+      },
     ];
   }
 
@@ -115,6 +123,8 @@ export class TaskgregatorSettingTab extends PluginSettingTab {
         return s.sidecarFolder;
       case "showCompleted":
         return s.showCompleted;
+      case "enableContextSidebar":
+        return s.enableContextSidebar;
       default:
         return undefined;
     }
@@ -143,6 +153,9 @@ export class TaskgregatorSettingTab extends PluginSettingTab {
         break;
       case "showCompleted":
         s.showCompleted = Boolean(value);
+        break;
+      case "enableContextSidebar":
+        s.enableContextSidebar = Boolean(value);
         break;
       default:
         return;
@@ -235,6 +248,19 @@ export class TaskgregatorSettingTab extends PluginSettingTab {
       .addToggle((tg) =>
         tg.setValue(this.plugin.settings.showCompleted).onChange(async (v) => {
           this.plugin.settings.showCompleted = v;
+          await this.plugin.saveSettings();
+        })
+      );
+
+    new Setting(containerEl)
+      .setName("Context sidebar")
+      .setDesc(
+        "Auto-open the file-context task panel in the right sidebar on startup. " +
+          "The panel follows the active note; for a folder note (filename matches its folder) it scopes to the whole folder subtree."
+      )
+      .addToggle((tg) =>
+        tg.setValue(this.plugin.settings.enableContextSidebar).onChange(async (v) => {
+          this.plugin.settings.enableContextSidebar = v;
           await this.plugin.saveSettings();
         })
       );
