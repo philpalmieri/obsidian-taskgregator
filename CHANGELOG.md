@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.1
+
+### Fixed
+- Context sidebar **Section** and **Reference** tabs no longer leak sibling files' tasks when viewing a regular page. Subtree expansion now applies only on a folder note (`Folder/Folder.md`). On a regular page like `Folder/File1.md`, Section is empty and Reference lists only tasks that link to that exact file.
+
 ## 2.0.0
 
 Major reorganization of the plugin's UI into three surfaces that share one index.

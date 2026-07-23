@@ -41,9 +41,9 @@ function resolvesInto(
  * Compute the task context for the active file, split into scopes:
  *
  * - page: open tasks authored on this exact file.
- * - section: open tasks authored elsewhere in the same folder subtree (for a
- *   folder note, that's the folder it stands in for; for a regular page, its
- *   parent folder), excluding the page itself.
+ * - section: for a folder note only, open tasks authored elsewhere in the folder
+ *   subtree it stands in for (excluding the folder note itself). Empty for a
+ *   regular page, which has no subtree of its own.
  * - reference: tasks authored elsewhere that link into the page (or, for a
  *   folder note, anywhere in its subtree).
  * - all: the deduped union, ordered page → section → reference.
@@ -62,15 +62,18 @@ export function computeContext(
   const page = visible.filter((t) => t.filePath === file.path);
   const pageSet = new Set(page.map((t) => t.id));
 
-  // Subtree prefix: the folder this file scopes to.
+  // Subtree prefix: the folder a folder note stands in for. Only a folder note
+  // expands to its folder; a regular page is scoped to itself.
   const folderPath = file.parent ? file.parent.path : "";
   const prefix = folderPath === "" ? "" : folderPath + "/";
   const inSubtree = (p: string) =>
     p === file.path || (prefix !== "" && p.startsWith(prefix));
 
-  const section = visible.filter(
-    (t) => !pageSet.has(t.id) && prefix !== "" && t.filePath.startsWith(prefix)
-  );
+  const section = folderNote
+    ? visible.filter(
+        (t) => !pageSet.has(t.id) && prefix !== "" && t.filePath.startsWith(prefix)
+      )
+    : [];
 
   // References resolve into the whole subtree for a folder note, else the page.
   const refTest = folderNote
