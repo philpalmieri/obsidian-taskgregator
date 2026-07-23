@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.2
+
+### Changed
+- Documentation only. Rewrote the README around the "works the way you already work" positioning (no separate database, no special task files, no syntax or rules to adopt) and replaced the wireframes with real screenshots. Released to refresh the README shown on directory and mirror sites. No functional changes.
+
 ## 2.0.1
 
 ### Fixed
