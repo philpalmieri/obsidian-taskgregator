@@ -1,46 +1,62 @@
 # Taskgregator
 
-**An aggregator for your native Obsidian tasks, inspired by the best dedicated to-do apps (think Things, Todoist, TickTick).**
+**Task management that works the way you already work.**
 
-Taskgregator sucks up every checkbox task across your vault and organizes it by context (Projects, People, Areas, whatever folders you choose), without moving your notes or locking tasks into their own files. Your tasks stay exactly where you wrote them, in the markdown they already live in. Taskgregator just gives you a fast, focused place to see, prioritize, schedule, and complete them.
+Taskgregator isn't another task system to adopt. It reads the plain markdown checkboxes you already write, wherever you already write them, and gives you fast, focused views of your work without asking you to change a thing.
 
-Think of it as a task dashboard that reads and writes your real notes, not a separate task silo.
+No separate database. No special task files. No syntax to learn. No rules to follow. Your notes stay exactly as they are, and your tasks stay on the lines where you typed them. Taskgregator just aggregates, organizes, and surfaces them so you can see everything from different angles and act on it in place.
 
-> Works against plain markdown checkboxes and [Tasks-plugin](https://publish.obsidian.md/tasks/) style emoji metadata. No runtime dependency on Dataview or the Tasks plugin.
+Think Things, Todoist, or TickTick, but pointed at the notes you already have instead of a silo you have to feed.
 
-## Core ideas
+![Taskgregator navigator and task list](assets/tasks-by-project.png)
 
-Most task plugins either make you adopt a whole new system or isolate each task in its own document. Taskgregator takes the opposite stance:
+## Why it's different
 
-- Tasks are just markdown checkboxes in your notes. That's the source of truth.
-- Where a task lives (and what it links to) *is* its context. A task in `Projects/Website Redesign.md` belongs to that project. A task that mentions `[[People/Alex]]` also belongs to Alex.
-- You should be able to see everything in one place, act on it, and jump straight back to the note it came from.
+Most task plugins make you pick a side: adopt a whole new system, or scatter each task into its own document with its own metadata block. Both make your notes serve the tool.
 
-### One task, many places
+Taskgregator flips that. The tool serves your notes.
 
-A task is indexed by its location, its `[[wikilinks]]`, its `#tags`, and its dates, all at once. No duplication, no moving notes around.
+- **Zero adoption cost.** A task is just a markdown checkbox. If you can write `- [ ] thing`, you're already using it.
+- **No enforced structure.** There's nothing you *have* to do. No required fields, no mandatory tags, no folder layout you must follow. Use as much or as little as you want.
+- **No separate store.** Nothing is duplicated into a database or a task vault. The markdown line is the single source of truth, and every edit writes straight back to it.
+- **Context comes from where things already live.** A task in `Projects/Website Redesign.md` belongs to that project. A task that mentions `[[People/Alex]]` belongs to Alex too. You don't tag it; the location and links already say it.
+- **See it from any angle.** The same task shows up under its project, under the people it links to, and in your date-based smart lists, all at once, with no copies to keep in sync.
 
-![Cross-index wireframe](assets/wireframe-crossindex.png)
+![One task shows its context, dates, priority, and tags, all from the plain markdown line](assets/task-card.png)
 
-So a task authored in a project note that references a person shows up under **both** that project **and** that person in the navigator, and in your date-based smart lists if it has a due date.
+## The three surfaces
+
+Everything reads from one shared index, so a selection you make in one place is reflected everywhere.
+
+- **Navigator** (left sidebar): smart lists plus a roll-up tree of your context folders, docked right next to Files and Search. Pick one to drive the list.
+- **Task list** (main area): the tasks for the current selection, with sort and grouping controls.
+- **Context sidebar** (right sidebar): follows the note you're editing and shows its tasks, filtered by **Page / Section / Reference / All**.
+
+### The task list
+
+Group by project, sort by whatever you care about, and jump straight back to the source note from any card (shown above).
+
+### The context sidebar
+
+While you're writing a note, the right sidebar shows that note's tasks, so you never lose track of what a page owns.
+
+**Page** shows the tasks written on the note in front of you.
+
+![Page tab: tasks on the current note](assets/context-page.png)
+
+**Reference** shows tasks living elsewhere that link *to* this note, so inbound work surfaces too.
+
+![Reference tab: tasks elsewhere that link to this note](assets/context-reference.png)
+
+**Section** rolls up a whole subtree. On a folder note (a file named after its folder), you get every open task beneath it in one list.
+
+![Section tab: a folder note rolling up its whole subtree](assets/context-section.png)
 
 ### Right-click anywhere
 
 Because Taskgregator understands your task lines, you get a context menu on any task line in the normal editor, not just inside the plugin panel. Set priority, add a due date, toggle `#today`, open a detail note, or reveal the task in the task list.
 
-![Context menu wireframe](assets/wireframe-contextmenu.png)
-
-## What it looks like
-
-Three surfaces that share one index:
-
-- **Navigator** (left sidebar): smart lists plus a roll-up tree of your context folders. Pick one to drive the list.
-- **Task list** (main area): the tasks for the current selection, with sort and grouping controls.
-- **Context sidebar** (right sidebar): follows the note you're editing and shows its tasks, filtered by **Page / Section / Reference** (or **All**).
-
-![Main view wireframe](assets/wireframe-main.png)
-
-*(Wireframes are intentionally low-fidelity. Names and projects shown are fictional.)*
+![Right-click menu on a task line](assets/wireframe-contextmenu.png)
 
 ## Features
 
@@ -52,11 +68,11 @@ Three surfaces that share one index:
 - **Priority** using Tasks-plugin emoji signifiers (🔺 ⏫ 🔼) so it stays compatible with what you already use.
 - **Per-task detail notes (sidecars).** Optionally attach a full markdown note to any task for extended context, links, and history. The task gets a lightweight block id (`^id`) only when you enrich it, and the sidecar backlinks to the source line. A 📝 chip on the card opens it.
 - **Native right-click menu** on task lines across your whole vault.
-- **Self-contained.** Reads and writes markdown directly. No dependency on Dataview or the Tasks plugin at runtime.
+- **Self-contained.** Reads and writes markdown directly. No dependency on Dataview or the Tasks plugin at runtime. Works on desktop and mobile.
 
 ## Task format
 
-Taskgregator reads standard markdown checkboxes and Tasks-plugin emoji metadata:
+Taskgregator reads standard markdown checkboxes and Tasks-plugin emoji metadata. Nothing here is required; add only what's useful to you:
 
 ```markdown
 - [ ] Open task
@@ -101,6 +117,8 @@ Recognized signifiers:
 - **Detail-note folder**: where sidecars are stored (default `Taskgregator/tasksData`).
 - **Show completed tasks**: include done/cancelled tasks in the index.
 - **Context sidebar**: enable the right-sidebar panel that follows the active note.
+
+![Settings](assets/settings.png)
 
 ## What data it touches
 
