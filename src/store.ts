@@ -36,6 +36,23 @@ export class TaskStore {
   }
 
   /**
+   * Filter a task set by a free-text query. Each whitespace-separated term must
+   * appear (as a case-insensitive substring) in the task's text, tags, links, or
+   * source file. Empty query returns the list unchanged.
+   */
+  filterByQuery(tasks: TaskItem[], query: string): TaskItem[] {
+    const q = query.trim().toLowerCase();
+    if (!q) return tasks;
+    const terms = q.split(/\s+/);
+    return tasks.filter((t) => {
+      const hay = [t.text, t.rawText, t.tags.join(" "), t.links.join(" "), t.bucketFile]
+        .join(" ")
+        .toLowerCase();
+      return terms.every((term) => hay.includes(term));
+    });
+  }
+
+  /**
    * Build the context tree: bucketRoot -> file -> tasks, with rolled-up open counts.
    * Inbox roots collapse to a single node per root (flat).
    */
@@ -169,8 +186,28 @@ export class TaskStore {
 
   /** Tasks due on/before today (Today smart list core). */
   dueToday(): TaskItem[] {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = this.dayOffset(0);
     return this.visible().filter((t) => t.meta.due && t.meta.due <= today);
+  }
+
+  /** Tasks due tomorrow. */
+  dueTomorrow(): TaskItem[] {
+    const tomorrow = this.dayOffset(1);
+    return this.visible().filter((t) => t.meta.due === tomorrow);
+  }
+
+  /** Tasks due within the next `soonDays` days (after today, through today+N). */
+  dueSoon(): TaskItem[] {
+    const today = this.dayOffset(0);
+    const end = this.dayOffset(Math.max(1, this.settings.soonDays));
+    return this.visible().filter((t) => t.meta.due && t.meta.due > today && t.meta.due <= end);
+  }
+
+  /** ISO date (YYYY-MM-DD) `n` days from today. */
+  private dayOffset(n: number): string {
+    const d = new Date();
+    d.setDate(d.getDate() + n);
+    return d.toISOString().slice(0, 10);
   }
 
   counts() {
@@ -178,6 +215,8 @@ export class TaskStore {
     return {
       total: v.length,
       today: this.dueToday().length,
+      tomorrow: this.dueTomorrow().length,
+      soon: this.dueSoon().length,
       flagged: v.filter((t) => t.priority > 0 && t.priority <= 2).length,
     };
   }

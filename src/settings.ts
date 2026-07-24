@@ -28,6 +28,8 @@ export interface TaskgregatorSettings {
   useEmojiMetadata: boolean;
   // Auto-open the context sidebar (follows the active file) on startup.
   enableContextSidebar: boolean;
+  // "Soon" smart-list window in days (tasks due within the next N days).
+  soonDays: number;
 }
 
 export const DEFAULT_SETTINGS: TaskgregatorSettings = {
@@ -46,6 +48,7 @@ export const DEFAULT_SETTINGS: TaskgregatorSettings = {
   showCompleted: false,
   useEmojiMetadata: true,
   enableContextSidebar: true,
+  soonDays: 7,
 };
 
 export class TaskgregatorSettingTab extends PluginSettingTab {
@@ -95,6 +98,11 @@ export class TaskgregatorSettingTab extends PluginSettingTab {
         control: { type: "text", key: "sidecarFolder" },
       },
       {
+        name: "Soon window (days)",
+        desc: "Soon list shows tasks due within this many days (default 7).",
+        control: { type: "text", key: "soonDays" },
+      },
+      {
         name: "Show completed tasks",
         control: { type: "toggle", key: "showCompleted" },
       },
@@ -121,6 +129,8 @@ export class TaskgregatorSettingTab extends PluginSettingTab {
         return s.smartLists.map((x) => `${x.name}:${x.tag}`).join(", ");
       case "sidecarFolder":
         return s.sidecarFolder;
+      case "soonDays":
+        return String(s.soonDays);
       case "showCompleted":
         return s.showCompleted;
       case "enableContextSidebar":
@@ -150,6 +160,9 @@ export class TaskgregatorSettingTab extends PluginSettingTab {
         break;
       case "sidecarFolder":
         s.sidecarFolder = String(value).trim().replace(/\/$/, "");
+        break;
+      case "soonDays":
+        s.soonDays = clampDays(value);
         break;
       case "showCompleted":
         s.showCompleted = Boolean(value);
@@ -244,6 +257,18 @@ export class TaskgregatorSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
+      .setName("Soon window (days)")
+      .setDesc("Soon list shows tasks due within this many days (default 7).")
+      .addText((t) =>
+        t
+          .setValue(String(this.plugin.settings.soonDays))
+          .onChange(async (v) => {
+            this.plugin.settings.soonDays = clampDays(v);
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
       .setName("Show completed tasks")
       .addToggle((tg) =>
         tg.setValue(this.plugin.settings.showCompleted).onChange(async (v) => {
@@ -274,6 +299,12 @@ export class TaskgregatorSettingTab extends PluginSettingTab {
         })
       );
   }
+}
+
+function clampDays(value: unknown): number {
+  const n = Math.round(Number(value));
+  if (!Number.isFinite(n) || n < 1) return 7;
+  return Math.min(n, 365);
 }
 
 function splitList(v: string): string[] {

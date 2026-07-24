@@ -7,6 +7,8 @@ export type GroupKey = "none" | "priority" | "due" | "reference";
 
 export type Selection =
   | { type: "today" }
+  | { type: "tomorrow" }
+  | { type: "soon" }
   | { type: "all" }
   | { type: "flagged" }
   | { type: "smart"; tag: string; label: string }
@@ -14,6 +16,8 @@ export type Selection =
 
 export class TaskgregatorState {
   selection: Selection = { type: "today" };
+  // Free-text filter layered on top of the current selection ("" = off).
+  searchQuery = "";
   // Context-tree node keys the user has collapsed.
   collapsed: Set<string> = new Set();
   sortBy: SortKey = "priority";

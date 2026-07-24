@@ -1,4 +1,4 @@
-import { Plugin, WorkspaceLeaf, TFile, TAbstractFile, Menu, Editor, MarkdownView, MarkdownFileInfo } from "obsidian";
+import { Plugin, WorkspaceLeaf, TFile, TAbstractFile, Menu, Editor, MarkdownView, MarkdownFileInfo, MarkdownPostProcessorContext } from "obsidian";
 import { TaskgregatorSettings, DEFAULT_SETTINGS, TaskgregatorSettingTab } from "./settings";
 import { TaskStore } from "./store";
 import { TaskWriter } from "./writer";
@@ -16,6 +16,7 @@ import { TaskgregatorNavView, VIEW_TYPE_TASKGREGATOR_NAV } from "./navView";
 import { TaskgregatorState } from "./state";
 import { promptDate } from "./ui";
 import { TaskgregatorContextView, VIEW_TYPE_TASKGREGATOR_CONTEXT } from "./contextView";
+import { noteIconLivePreview } from "./livePreview";
 
 export default class Taskgregator extends Plugin {
   settings!: TaskgregatorSettings;
@@ -41,6 +42,12 @@ export default class Taskgregator extends Plugin {
       },
       openList: () => this.openList(),
       rerenderAll: () => this.refreshViews(),
+      rerenderList: () => {
+        for (const leaf of this.app.workspace.getLeavesOfType(VIEW_TYPE_TASKGREGATOR)) {
+          const view = leaf.view;
+          if (view instanceof TaskgregatorView) view.render();
+        }
+      },
     };
 
     this.registerView(
@@ -77,6 +84,18 @@ export default class Taskgregator extends Plugin {
     });
 
     this.addSettingTab(new TaskgregatorSettingTab(this.app, this));
+
+    // In reading view, replace the raw block-id on a task that has a detail note
+    // with a small clickable note icon (matching the plugin views' 📝 chip).
+    this.registerMarkdownPostProcessor((el, ctx) => this.decorateTaskNotes(el, ctx));
+
+    // Same idea in Live Preview: hide the raw `^tg…` id and show a 📝 note icon.
+    this.registerEditorExtension([
+      noteIconLivePreview(
+        (blockId) => this.hasSidecar(blockId),
+        (blockId) => this.openSidecarById(blockId)
+      ),
+    ]);
 
     // Keep the index fresh as the vault changes (debounced).
     const onChange = (f: TAbstractFile) => {
@@ -130,6 +149,75 @@ export default class Taskgregator extends Plugin {
 
   onunload(): void {
     if (this.refreshTimer !== null) window.clearTimeout(this.refreshTimer);
+  }
+
+  /** Does a detail (sidecar) note exist for this block id? */
+  private hasSidecar(blockId: string): boolean {
+    const path = sidecarPathFor(this.settings, blockId);
+    return this.app.vault.getAbstractFileByPath(path) instanceof TFile;
+  }
+
+  /** Open the detail note for a block id (used by the inline note icons). */
+  private openSidecarById(blockId: string): void {
+    void this.writer.openPath(sidecarPathFor(this.settings, blockId));
+  }
+
+  /**
+   * Reading-view decoration: for each rendered task that carries a block id whose
+   * detail note exists, append a clickable note icon linking to that sidecar.
+   */
+  private decorateTaskNotes(el: HTMLElement, ctx: MarkdownPostProcessorContext): void {
+    const taskLis = Array.from(el.querySelectorAll<HTMLElement>("li.task-list-item"));
+    if (taskLis.length === 0) return;
+
+    // Authoritative block-id map: source line -> block id, for task list items.
+    const cache = this.app.metadataCache.getCache(ctx.sourcePath);
+    const blockIdByLine = new Map<number, string>();
+    for (const it of cache?.listItems ?? []) {
+      if (it.task != null && it.id) blockIdByLine.set(it.position.start.line, it.id);
+    }
+    if (blockIdByLine.size === 0) return;
+
+    const info = ctx.getSectionInfo(el);
+    const base = info ? info.lineStart : 0;
+
+    // Ordered task lines within this section (for order-based fallback).
+    const sectionTaskLines = Array.from(blockIdByLine.keys())
+      .filter((ln) => !info || (ln >= info.lineStart && ln <= info.lineEnd))
+      .sort((a, b) => a - b);
+
+    taskLis.forEach((li, idx) => {
+      // Resolve this row's source line. Prefer the checkbox's data-line (which may
+      // be absolute or section-relative); fall back to order within the section.
+      const cb = li.querySelector<HTMLElement>("input.task-list-item-checkbox, input[type=checkbox]");
+      const raw = cb?.getAttribute("data-line") ?? li.getAttribute("data-line");
+      let blockId: string | undefined;
+      if (raw != null && raw !== "") {
+        const rel = parseInt(raw, 10);
+        if (!Number.isNaN(rel)) {
+          blockId = blockIdByLine.get(rel + base) ?? blockIdByLine.get(rel);
+        }
+      }
+      if (!blockId) blockId = blockIdByLine.get(sectionTaskLines[idx]);
+      if (!blockId) return;
+      const bid = blockId;
+
+      if (!this.hasSidecar(bid)) return;
+      if (li.querySelector(".tg-inline-note")) return;
+
+      const icon = createSpan({ cls: "tg-inline-note", text: "📝" });
+      icon.setAttr("aria-label", "Open task note");
+      icon.onClickEvent((e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.openSidecarById(bid);
+      });
+
+      // Place the icon right after the task text (before any nested list).
+      const nested = li.querySelector(":scope > ul, :scope > ol");
+      if (nested) li.insertBefore(icon, nested);
+      else li.appendChild(icon);
+    });
   }
 
   async activateView(): Promise<void> {

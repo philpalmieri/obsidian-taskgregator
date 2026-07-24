@@ -1,6 +1,6 @@
 {
   "name": "taskgregator",
-  "version": "2.0.2",
+  "version": "2.1.0",
   "description": "A Things3-style aggregator for native Obsidian tasks.",
   "main": "main.js",
   "scripts": {
@@ -18,6 +18,8 @@
   "author": "Phil Palmieri",
   "license": "MIT",
   "devDependencies": {
+    "@codemirror/state": "^6.0.0",
+    "@codemirror/view": "^6.0.0",
     "@types/node": "^20.11.0",
     "esbuild": "^0.20.0",
     "obsidian": "latest",

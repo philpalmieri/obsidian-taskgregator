@@ -34,6 +34,57 @@
 }
 .taskgregator .tg-icon-btn:hover { opacity: 1; }
 
+.taskgregator .tg-search {
+  padding: 0 8px 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.taskgregator .tg-search-input {
+  flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
+  font-size: 0.9em;
+  padding: 5px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-modifier-form-field);
+  color: var(--text-normal);
+}
+.taskgregator .tg-search-input:focus {
+  outline: none;
+  border-color: var(--interactive-accent);
+}
+.taskgregator .tg-search-x {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  opacity: 0.6;
+}
+.taskgregator .tg-search-x:hover { opacity: 1; }
+
+.taskgregator .tg-search-callout {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0 8px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 0.85em;
+  background: var(--background-secondary-alt);
+  color: var(--text-muted);
+}
+.taskgregator .tg-search-term,
+.taskgregator .tg-search-scope { color: var(--text-normal); font-weight: 600; }
+.taskgregator .tg-search-term::before { content: "'"; }
+.taskgregator .tg-search-term::after { content: "'"; }
+.taskgregator .tg-search-clear {
+  margin-left: auto;
+  cursor: pointer;
+  color: var(--text-accent);
+}
+.taskgregator .tg-search-clear:hover { text-decoration: underline; }
+
 .taskgregator .tg-section { margin-bottom: 10px; }
 
 .taskgregator .tg-section-title {
@@ -356,3 +407,16 @@
 .taskgregator.tg-context .tg-tab.is-active .tg-tab-count {
   color: var(--text-muted);
 }
+
+/* Inline note icon shown on source-note tasks that have a detail sidecar. */
+.tg-inline-note {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  cursor: pointer;
+  opacity: 0.75;
+  vertical-align: middle;
+  font-size: 0.85em;
+}
+.tg-inline-note:hover { opacity: 1; }
+.tg-inline-note svg { width: 0.9em; height: 0.9em; }

@@ -1,5 +1,20 @@
 # Changelog
 
+## 2.1.0
+
+Feature release. Faster to find things, quicker to act on them in place, and cleaner on the page.
+
+### Added
+- **Search box in the navigator.** A search field under the title filters tasks as you type. It scopes to the current selection (a project, Today, a tag list, etc.) and shows a *Searching 'foo' in <scope>* callout on the list, with a **clear** action. The filter sticks when you switch to another smart list or context node, so you can search the same term across different scopes. Clear with the **×** in the field or **Esc**.
+- **Tomorrow and Soon smart lists** under Today. **Tomorrow** shows tasks due tomorrow; **Soon** shows tasks due within the next *N* days. The window is configurable via **Soon window (days)** (default 7).
+- **Right-click context menu on task rows** in the task list and context sidebar (previously only on task lines in the editor). Set priority (submenu), due/start dates, toggle `#today`, open the detail note, jump to source, or cancel, without leaving the panel.
+
+### Changed
+- **Detail-note block ids are hidden on the page.** A task's lazily-added `^id` no longer shows as raw text. In both Reading view and Live Preview it renders as a small **📝** note icon (click to open the note; right-click the task for the menu). Put your cursor on the line in Live Preview to reveal the raw id when you need it. The id stays in the file, so identity and backlinks are unchanged.
+
+### Notes
+- No data migration. Tasks remain plain markdown checkboxes; existing block ids and detail notes keep working.
+
 ## 2.0.2
 
 ### Changed

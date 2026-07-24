@@ -28,13 +28,17 @@ Taskgregator flips that. The tool serves your notes.
 
 Everything reads from one shared index, so a selection you make in one place is reflected everywhere.
 
-- **Navigator** (left sidebar): smart lists plus a roll-up tree of your context folders, docked right next to Files and Search. Pick one to drive the list.
+- **Navigator** (left sidebar): a search box, smart lists, plus a roll-up tree of your context folders, docked right next to Files and Search. Pick one to drive the list.
 - **Task list** (main area): the tasks for the current selection, with sort and grouping controls.
 - **Context sidebar** (right sidebar): follows the note you're editing and shows its tasks, filtered by **Page / Section / Reference / All**.
 
+### Search
+
+A search box at the top of the navigator filters tasks as you type. It scopes to whatever is selected, so you can search within a single project or across everything by picking **All** first. A *Searching 'foo' in <scope>* callout with a **clear** action stays on the list, and the filter persists as you switch between lists so you can carry the same query around. Clear it with the **×** in the field or **Esc**.
+
 ### The task list
 
-Group by project, sort by whatever you care about, and jump straight back to the source note from any card (shown above).
+Group by project, sort by whatever you care about, and jump straight back to the source note from any card (shown above). Right-click any row for the same quick actions you get in the editor: priority, dates, `#today`, detail note, or cancel.
 
 ### The context sidebar
 
@@ -61,13 +65,15 @@ Because Taskgregator understands your task lines, you get a context menu on any 
 ## Features
 
 - **Context tree** with roll-up counts. Configure which top-level folders become buckets (default: `Projects`, `People`, `Areas`). Files become sub-nodes; parent nodes aggregate everything beneath them.
+- **Search** across the current scope. Type in the navigator's search box to filter the selected list; the filter follows you as you switch lists so you can search the same term anywhere.
 - **Cross-indexing by wikilink.** A task that links `[[People/Alex]]` appears under Alex's node even though it was authored elsewhere.
 - **Context sidebar** that follows the active note and scopes its tasks by Page, Section (folder subtree / folder note), or Reference.
-- **Smart lists** driven by tags: Today, Follow-up, Snippet Ideas, Someday (all configurable). Plus built-in Today (by due date), Flagged (by priority), and All.
-- **Inline editing** from the panel: toggle done/cancelled, cycle priority, set due/start dates, add tags, jump to source, all written back to the original markdown line.
+- **Date smart lists**: Today (due on/before today), **Tomorrow**, and **Soon** (due within a configurable window, default 7 days). Plus Flagged (by priority) and All.
+- **Tag smart lists** driven by tags: Follow-up, Snippet Ideas, Someday, and any others you configure.
+- **Inline editing** from the panel: toggle done/cancelled, cycle priority, set due/start dates, add tags, jump to source, all written back to the original markdown line. Right-click a row for the full menu.
 - **Priority** using Tasks-plugin emoji signifiers (🔺 ⏫ 🔼) so it stays compatible with what you already use.
-- **Per-task detail notes (sidecars).** Optionally attach a full markdown note to any task for extended context, links, and history. The task gets a lightweight block id (`^id`) only when you enrich it, and the sidecar backlinks to the source line. A 📝 chip on the card opens it.
-- **Native right-click menu** on task lines across your whole vault.
+- **Per-task detail notes (sidecars).** Optionally attach a full markdown note to any task for extended context, links, and history. The task gets a lightweight block id (`^id`) only when you enrich it, and the sidecar backlinks to the source line. The raw id is hidden on the page: it shows as a small 📝 note icon in both Reading view and Live Preview (click to open; put your cursor on the line to reveal the id). A 📝 chip on the card opens it too.
+- **Native right-click menu** on task lines across your whole vault, and on rows inside the panel.
 - **Self-contained.** Reads and writes markdown directly. No dependency on Dataview or the Tasks plugin at runtime. Works on desktop and mobile.
 
 ## Task format
@@ -97,13 +103,14 @@ Recognized signifiers:
 | `🔺 ⏫ 🔼 🔽 ⏬` | Priority (highest → lowest) |
 | `#tag` | Smart-list membership |
 | `[[link]]` | Cross-index target |
-| `^blockid` | Stable identity (added lazily) |
+| `^blockid` | Stable identity, added lazily when you attach a note (hidden on the page, shown as a 📝 icon) |
 
 ## Usage
 
 - The **navigator** opens in the left sidebar (its ✓✓ tab sits next to Files and Search). You can also run **Taskgregator: Open panel** from the command palette.
+- **Search** from the box at the top of the navigator to filter the current list; it keeps filtering as you switch lists. Clear with the **×** or **Esc**.
 - Click a smart list or a tree node to load its tasks in the main list.
-- On a task card: click the checkbox to complete, the flag to cycle priority, the `⋯` menu for dates/detail-note/cancel, a chip to jump to its source, or the 📝 chip to open its detail note.
+- On a task card: click the checkbox to complete, the flag to cycle priority, the `⋯` menu (or right-click) for dates/detail-note/cancel, a chip to jump to its source, or the 📝 chip to open its detail note.
 - The **context sidebar** (right) tracks the note you're editing; use the Page / Section / Reference tabs to change scope.
 - Right-click any task line in the editor for the same actions inline.
 
@@ -115,6 +122,7 @@ Recognized signifiers:
 - **Priority tags**: fallback priority tags (default `p1, p2, p3`).
 - **Smart lists**: cross-cutting tag lists (`Name:tag` pairs).
 - **Detail-note folder**: where sidecars are stored (default `Taskgregator/tasksData`).
+- **Soon window (days)**: how many days ahead the **Soon** smart list looks (default 7).
 - **Show completed tasks**: include done/cancelled tasks in the index.
 - **Context sidebar**: enable the right-sidebar panel that follows the active note.
 

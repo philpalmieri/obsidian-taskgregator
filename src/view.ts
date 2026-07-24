@@ -38,6 +38,9 @@ export interface ViewDeps {
   openList: () => Promise<void>;
   // Re-render nav + list + context views without reindexing.
   rerenderAll: () => void;
+  // Re-render only the center list view(s) (used by search-as-you-type so the
+  // nav's search input keeps focus).
+  rerenderList: () => void;
 }
 
 /**
@@ -105,6 +108,10 @@ export class TaskgregatorView extends ItemView {
     switch (s.type) {
       case "today":
         return { title: "Today", tasks: this.deps.store.dueToday() };
+      case "tomorrow":
+        return { title: "Tomorrow", tasks: this.deps.store.dueTomorrow() };
+      case "soon":
+        return { title: "Soon", tasks: this.deps.store.dueSoon() };
       case "flagged":
         return {
           title: "Flagged",
@@ -126,14 +133,22 @@ export class TaskgregatorView extends ItemView {
   private renderMain(): void {
     const el = this.mainEl;
     el.empty();
-    const { title, tasks } = this.currentTasks();
+    const { title, tasks: baseTasks } = this.currentTasks();
+    const query = this.state.searchQuery.trim();
+    const tasks = query ? this.deps.store.filterByQuery(baseTasks, query) : baseTasks;
+
     const head = el.createDiv({ cls: "tg-main-header" });
     head.createEl("h2", { text: title });
     head.createSpan({ cls: "tg-count", text: `${tasks.length}` });
 
+    if (query) this.renderSearchCallout(el, query, title);
+
     if (tasks.length === 0) {
       this.renderControls(el);
-      el.createDiv({ cls: "tg-empty", text: "No tasks here. Nice." });
+      const msg = query
+        ? `No tasks match "${query}" in ${title}.`
+        : "No tasks here. Nice.";
+      el.createDiv({ cls: "tg-empty", text: msg });
       return;
     }
 
@@ -153,6 +168,21 @@ export class TaskgregatorView extends ItemView {
       header.createSpan({ cls: "tg-group-count", text: String(group.tasks.length) });
       for (const t of group.tasks) this.renderTaskRow(list, t);
     }
+  }
+
+  /** Callout shown while a search filter is active, with a clear action. */
+  private renderSearchCallout(el: HTMLElement, query: string, scope: string): void {
+    const bar = el.createDiv({ cls: "tg-search-callout" });
+    const label = bar.createSpan({ cls: "tg-search-callout-text" });
+    label.appendText("Searching ");
+    label.createSpan({ cls: "tg-search-term", text: query });
+    label.appendText(" in ");
+    label.createSpan({ cls: "tg-search-scope", text: scope });
+    const clear = bar.createSpan({ cls: "tg-search-clear", text: "clear" });
+    clear.onclick = () => {
+      this.state.searchQuery = "";
+      this.deps.rerenderAll();
+    };
   }
 
   private renderControls(el: HTMLElement): void {

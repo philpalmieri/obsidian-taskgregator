@@ -11,6 +11,7 @@ export const VIEW_TYPE_TASKGREGATOR_NAV = "taskgregator-nav-view";
  */
 export class TaskgregatorNavView extends ItemView {
   deps: ViewDeps;
+  private searchInput: HTMLInputElement | null = null;
 
   constructor(leaf: WorkspaceLeaf, deps: ViewDeps) {
     super(leaf);
@@ -44,6 +45,10 @@ export class TaskgregatorNavView extends ItemView {
 
   render(): void {
     const el = this.contentEl;
+    // Preserve search-box focus + caret across re-renders (e.g. background reindex).
+    const prev = this.searchInput;
+    const keepFocus = prev != null && document.activeElement === prev;
+    const caret = prev ? prev.selectionStart : null;
     el.empty();
     const c = this.deps.store.counts();
 
@@ -54,9 +59,19 @@ export class TaskgregatorNavView extends ItemView {
     reload.setAttr("aria-label", "Reindex");
     reload.onclick = () => this.deps.refresh();
 
+    this.renderSearch(el, keepFocus, caret);
+
     const smart = el.createDiv({ cls: "tg-section" });
     this.sideItem(smart, "star", "Today", c.today, this.state.selection.type === "today", () => {
       this.state.selection = { type: "today" };
+      this.choose();
+    });
+    this.sideItem(smart, "sun", "Tomorrow", c.tomorrow, this.state.selection.type === "tomorrow", () => {
+      this.state.selection = { type: "tomorrow" };
+      this.choose();
+    });
+    this.sideItem(smart, "calendar-clock", "Soon", c.soon, this.state.selection.type === "soon", () => {
+      this.state.selection = { type: "soon" };
       this.choose();
     });
     this.sideItem(smart, "flag", "Flagged", c.flagged, this.state.selection.type === "flagged", () => {
@@ -87,6 +102,48 @@ export class TaskgregatorNavView extends ItemView {
     for (const r of roots) {
       if (r.count === 0) continue;
       this.renderTreeNode(tree, r, 0);
+    }
+  }
+
+  /** The search box (under the title). Filters the current selection's tasks. */
+  private renderSearch(el: HTMLElement, keepFocus: boolean, caret: number | null): void {
+    const wrap = el.createDiv({ cls: "tg-search" });
+    const input = wrap.createEl("input", {
+      cls: "tg-search-input",
+      attr: { type: "text", placeholder: "Search tasks…", spellcheck: "false" },
+    });
+    input.value = this.state.searchQuery;
+    this.searchInput = input;
+
+    const clearBtn = wrap.createSpan({ cls: "tg-search-x", attr: { "aria-label": "Clear search" } });
+    setIcon(clearBtn, "x");
+    clearBtn.toggle(this.state.searchQuery.length > 0);
+
+    const apply = (query: string): void => {
+      this.state.searchQuery = query;
+      clearBtn.toggle(query.length > 0);
+      // Ensure the list is visible, then re-render only the list so this input
+      // keeps focus while typing.
+      void this.deps.openList();
+      this.deps.rerenderList();
+    };
+
+    const clear = (): void => {
+      input.value = "";
+      this.state.searchQuery = "";
+      this.deps.rerenderAll();
+    };
+
+    input.addEventListener("input", () => apply(input.value));
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") clear();
+    });
+    clearBtn.onclick = () => clear();
+
+    if (keepFocus) {
+      input.focus();
+      const pos = caret ?? input.value.length;
+      input.setSelectionRange(pos, pos);
     }
   }
 

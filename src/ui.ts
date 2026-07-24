@@ -75,14 +75,48 @@ export function renderTaskRow(parent: HTMLElement, task: TaskItem, ctx: TaskRowC
     ctx.rerender();
   };
 
-  // Actions menu.
+  // Actions menu (also available via right-click on the row).
   const more = row.createDiv({ cls: "tg-more" });
   setIcon(more, "more-horizontal");
   more.onclick = (e) => taskMenu(e, task, ctx);
+  row.oncontextmenu = (e) => {
+    e.preventDefault();
+    taskMenu(e, task, ctx);
+  };
 }
 
 function taskMenu(e: MouseEvent, task: TaskItem, ctx: TaskRowCtx): void {
   const menu = new Menu();
+
+  // Priority: submenu if the platform supports it, else flat P1..P3 + None.
+  menu.addItem((item) => {
+    item.setTitle("Priority").setIcon("flag");
+    const levels: Array<[string, number]> = [
+      ["None", 0],
+      ["P1 (high)", 1],
+      ["P2 (medium)", 2],
+      ["P3 (low)", 3],
+    ];
+    const setPrio = async (lvl: number) => {
+      await ctx.writer.setPriority(task, lvl);
+      await ctx.reindexFile(task.filePath);
+      ctx.rerender();
+    };
+    const sub = (item as unknown as { setSubmenu?: () => Menu }).setSubmenu?.();
+    if (sub) {
+      for (const [label, lvl] of levels) {
+        sub.addItem((s) =>
+          s.setTitle(label).setChecked(task.priority === lvl).onClick(() => void setPrio(lvl))
+        );
+      }
+    } else {
+      item.onClick(() => {
+        const cur = task.priority >= 1 && task.priority <= 3 ? task.priority : task.priority > 3 ? 3 : 0;
+        void setPrio((cur + 1) % 4);
+      });
+    }
+  });
+
   menu.addItem((i) =>
     i.setTitle("Set due date").setIcon("calendar").onClick(async () => {
       const d = await promptDate(ctx.app, "Due date", task.meta.due);
@@ -103,6 +137,18 @@ function taskMenu(e: MouseEvent, task: TaskItem, ctx: TaskRowCtx): void {
       }
     })
   );
+  menu.addItem((i) =>
+    i
+      .setTitle("Toggle #today")
+      .setIcon("star")
+      .setChecked(task.tags.includes("today"))
+      .onClick(async () => {
+        await ctx.writer.toggleTag(task, "today");
+        await ctx.reindexFile(task.filePath);
+        ctx.rerender();
+      })
+  );
+  menu.addSeparator();
   menu.addItem((i) =>
     i.setTitle("Open detail note").setIcon("sticky-note").onClick(async () => {
       await ctx.writer.openSidecar(task);

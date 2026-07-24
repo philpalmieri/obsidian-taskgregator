@@ -1,7 +1,7 @@
 {
   "id": "taskgregator",
   "name": "Taskgregator",
-  "version": "2.0.2",
+  "version": "2.1.0",
   "minAppVersion": "1.7.2",
   "description": "Aggregate your native markdown tasks into one fast dashboard, inspired by the best dedicated to-do apps. Buckets every checkbox by its People, Projects, and Areas context, with smart lists, priorities, dates, sorting, grouping, and per-task notes.",
   "author": "Phil Palmieri",
