@@ -14,6 +14,8 @@ export interface TaskRowCtx {
   // Age (in days) at/above which the created-age chip turns "aged" (warning
   // color) instead of the neutral grey. Mirrors the Aging smart list threshold.
   agingDays: number;
+  // Whole-vault mode uses the full source path because context roots may not apply.
+  showFullPath: boolean;
   // Navigate to the in-plugin list for an inline #tag (host wires this to the
   // shared selection). Omitted callers fall back to Obsidian global search.
   onTagClick?: (tag: string) => void;
@@ -95,7 +97,11 @@ export function renderTaskRow(parent: HTMLElement, task: TaskItem, ctx: TaskRowC
     }
   }
   const ctxChip = meta.createSpan({ cls: "tg-chip tg-ctx" });
-  ctxChip.setText(`${task.bucketRoot}: ${task.bucketFile}`);
+  ctxChip.setText(
+    ctx.showFullPath
+      ? task.filePath.replace(/\.md$/i, "")
+      : `${task.bucketRoot}: ${task.bucketFile}`
+  );
   ctxChip.onclick = () => void jumpToSource(ctx.app, task);
   if (task.meta.due) {
     const d = meta.createSpan({ cls: "tg-chip tg-due" });

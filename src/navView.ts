@@ -119,13 +119,17 @@ export class TaskgregatorNavView extends ItemView {
     }
     this.renderAllTags(lists);
 
-    // Context tree.
-    const tree = el.createDiv({ cls: "tg-section" });
-    tree.createDiv({ cls: "tg-section-title", text: "Context" });
-    const roots = this.deps.store.buildContextTree();
-    for (const r of roots) {
-      if (r.count === 0) continue;
-      this.renderTreeNode(tree, r, 0);
+    if (
+      this.deps.settings.scanScope === "contextRoots" &&
+      this.deps.settings.showContextTree
+    ) {
+      const tree = el.createDiv({ cls: "tg-section" });
+      tree.createDiv({ cls: "tg-section-title", text: "Context" });
+      const roots = this.deps.store.buildContextTree();
+      for (const r of roots) {
+        if (r.count === 0) continue;
+        this.renderTreeNode(tree, r, 0);
+      }
     }
   }
 

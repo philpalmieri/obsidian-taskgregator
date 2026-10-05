@@ -2,6 +2,7 @@ import { App, PluginSettingTab, Setting, SettingDefinitionItem } from "obsidian"
 import type Taskgregator from "./main";
 
 export type StartupView = "disabled" | "today" | "all" | "flagged";
+export type ScanScope = "contextRoots" | "wholeVault";
 
 // How Taskgregator writes task metadata. "auto" defers to the Tasks plugin's
 // configured format (falling back to emoji when Tasks isn't installed/readable).
@@ -16,6 +17,10 @@ export interface SmartList {
 export interface TaskgregatorSettings {
   // Folders whose files become top-level context buckets.
   bucketRoots: string[];
+  // Whether to scan only configured roots or every markdown file in the vault.
+  scanScope: ScanScope;
+  // Whether to show the context tree in the navigator.
+  showContextTree: boolean;
   // Glob-ish path prefixes to ignore entirely.
   ignorePaths: string[];
   // Frontmatter tags that exclude an entire file from task scanning.
@@ -57,6 +62,8 @@ export interface TaskgregatorSettings {
 
 export const DEFAULT_SETTINGS: TaskgregatorSettings = {
   bucketRoots: ["Projects", "People", "Areas"],
+  scanScope: "contextRoots",
+  showContextTree: true,
   ignorePaths: ["Archive/", "Templates/"],
   ignoreFileTags: [],
   ignoreFileProperties: [],
@@ -90,94 +97,143 @@ export class TaskgregatorSettingTab extends PluginSettingTab {
   }
 
   /**
-   * Declarative definitions so the settings are indexed by Obsidian's settings
-   * search on 1.13.0+. Rendering is still handled by display() below (which
-   * keeps compatibility with older app versions). The array/CSV-backed values
-   * are translated by getControlValue/setControlValue.
+   * Declarative settings for Obsidian 1.13+. display() below keeps compatibility
+   * with older app versions. Array-backed values are translated by the control
+   * accessors.
    */
   getSettingDefinitions(): SettingDefinitionItem[] {
     return [
       {
-        name: "Bucket roots",
-        desc: "Comma-separated top-level folders whose files become context buckets.",
-        control: { type: "text", key: "bucketRoots" },
+        type: "group",
+        heading: "Indexing",
+        items: [
+          {
+            name: "Indexing scope",
+            desc: "Scan configured context roots or every Markdown file in the vault.",
+            control: {
+              type: "dropdown",
+              key: "scanScope",
+              options: { contextRoots: "Context roots", wholeVault: "Whole vault" },
+            },
+          },
+          {
+            name: "Context roots",
+            desc: "Comma-separated top-level folders whose files become navigation contexts.",
+            control: { type: "text", key: "bucketRoots" },
+            visible: () => this.plugin.settings.scanScope === "contextRoots",
+          },
+          {
+            name: "Inbox roots",
+            desc: "Folders treated as a flat inbox (tasks grouped together, not per file). E.g. Dailies.",
+            control: { type: "text", key: "inboxRoots" },
+            visible: () => this.plugin.settings.scanScope === "contextRoots",
+          },
+        ],
       },
       {
-        name: "Inbox roots",
-        desc: "Folders treated as a flat inbox (tasks grouped together, not per file). e.g. Dailies.",
-        control: { type: "text", key: "inboxRoots" },
+        type: "group",
+        heading: "Exclusions",
+        items: [
+          {
+            name: "Ignore paths",
+            desc: "Comma-separated path prefixes to exclude from indexing.",
+            control: { type: "text", key: "ignorePaths" },
+          },
+          {
+            name: "Ignore file tags",
+            desc: "Comma-separated frontmatter tags whose files should not be scanned.",
+            control: { type: "text", key: "ignoreFileTags" },
+          },
+          {
+            name: "Ignore file properties",
+            desc: "Frontmatter rules in key=value form, one per line. Any match excludes the file.",
+            control: { type: "textarea", key: "ignoreFileProperties" },
+          },
+        ],
       },
       {
-        name: "Ignore paths",
-        desc: "Comma-separated path prefixes to exclude from indexing.",
-        control: { type: "text", key: "ignorePaths" },
+        type: "group",
+        heading: "Lists and task behavior",
+        items: [
+          {
+            name: "Priority tags",
+            desc: "Highest-first, comma-separated (without #). E.g. p1, p2, p3.",
+            control: { type: "text", key: "priorityTags" },
+          },
+          {
+            name: "Smart lists",
+            desc: "Cross-cutting tag lists. Format: Name:tag, comma-separated.",
+            control: { type: "textarea", key: "smartLists" },
+          },
+          {
+            name: "Detail-note folder",
+            desc: "Where per-task detail notes (sidecars) are stored.",
+            control: { type: "text", key: "sidecarFolder" },
+          },
+          {
+            name: "Soon window (days)",
+            desc: "Soon list shows tasks due within this many days (default 7).",
+            control: { type: "text", key: "soonDays" },
+          },
+          {
+            name: "Aging threshold (days)",
+            desc: "Aging list shows still-open tasks created this many days ago or older (default 14).",
+            control: { type: "text", key: "agingDays" },
+          },
+          {
+            name: "Show completed tasks",
+            control: { type: "toggle", key: "showCompleted" },
+          },
+          {
+            name: "Task metadata format",
+            desc: "How new dates/priority are written. Auto follows the Tasks plugin (emoji if not installed). Reading always supports both.",
+            control: {
+              type: "dropdown",
+              key: "taskFormat",
+              options: {
+                auto: "Auto (follow Tasks plugin)",
+                emoji: "Emoji (Tasks)",
+                dataview: "Dataview",
+              },
+            },
+          },
+        ],
       },
       {
-        name: "Ignore file tags",
-        desc: "Comma-separated frontmatter tags whose files should not be scanned.",
-        control: { type: "text", key: "ignoreFileTags" },
-      },
-      {
-        name: "Ignore file properties",
-        desc: "Frontmatter rules in key=value form, one per line. Any match excludes the file.",
-        control: { type: "textarea", key: "ignoreFileProperties" },
-      },
-      {
-        name: "Priority tags",
-        desc: "Highest-first, comma-separated (without #). e.g. p1, p2, p3.",
-        control: { type: "text", key: "priorityTags" },
-      },
-      {
-        name: "Smart lists",
-        desc: "Cross-cutting tag lists. Format: Name:tag, comma-separated.",
-        control: { type: "textarea", key: "smartLists" },
-      },
-      {
-        name: "Detail-note folder",
-        desc: "Where per-task detail notes (sidecars) are stored.",
-        control: { type: "text", key: "sidecarFolder" },
-      },
-      {
-        name: "Soon window (days)",
-        desc: "Soon list shows tasks due within this many days (default 7).",
-        control: { type: "text", key: "soonDays" },
-      },
-      {
-        name: "Aging threshold (days)",
-        desc: "Aging list shows still-open tasks created this many days ago or older (default 14).",
-        control: { type: "text", key: "agingDays" },
-      },
-      {
-        name: "Show completed tasks",
-        control: { type: "toggle", key: "showCompleted" },
-      },
-      {
-        name: "Context sidebar",
-        desc: "Auto-open the file-context task panel in the right sidebar on startup.",
-        control: { type: "toggle", key: "enableContextSidebar" },
-      },
-      {
-        name: "Show changelog on update",
-        desc: "Show the changelog automatically the first time the plugin loads after an update.",
-        control: { type: "toggle", key: "showChangelogOnUpdate" },
-      },
-      {
-        name: "Load Taskgregator on startup",
-        desc: "Open the main Taskgregator panel to a list automatically when Obsidian starts.",
-        control: {
-          type: "dropdown",
-          key: "startupView",
-          options: { disabled: "Disabled", today: "Today", all: "All", flagged: "Flagged" },
-        },
-      },
-      {
-        name: "Task metadata format",
-        desc: "How new dates/priority are written. Auto follows the Tasks plugin (emoji if not installed). Reading always supports both.",
-        control: {
-          type: "dropdown",
-          key: "taskFormat",
-          options: { auto: "Auto (follow Tasks plugin)", emoji: "Emoji (Tasks)", dataview: "Dataview" },
-        },
+        type: "group",
+        heading: "Interface",
+        items: [
+          {
+            name: "Show context tree",
+            desc: "Show configured contexts and their nested task counts in the navigator.",
+            control: { type: "toggle", key: "showContextTree" },
+            visible: () => this.plugin.settings.scanScope === "contextRoots",
+          },
+          {
+            name: "Context sidebar",
+            desc: "Auto-open the file-context task panel in the right sidebar on startup.",
+            control: { type: "toggle", key: "enableContextSidebar" },
+          },
+          {
+            name: "Show changelog on update",
+            desc: "Show the changelog automatically the first time the plugin loads after an update.",
+            control: { type: "toggle", key: "showChangelogOnUpdate" },
+          },
+          {
+            name: "Load Taskgregator on startup",
+            desc: "Open the main Taskgregator panel to a list automatically when Obsidian starts.",
+            control: {
+              type: "dropdown",
+              key: "startupView",
+              options: {
+                disabled: "Disabled",
+                today: "Today",
+                all: "All",
+                flagged: "Flagged",
+              },
+            },
+          },
+        ],
       },
     ];
   }
@@ -185,8 +241,12 @@ export class TaskgregatorSettingTab extends PluginSettingTab {
   getControlValue(key: string): unknown {
     const s = this.plugin.settings;
     switch (key) {
+      case "scanScope":
+        return s.scanScope;
       case "bucketRoots":
         return s.bucketRoots.join(", ");
+      case "showContextTree":
+        return s.showContextTree;
       case "inboxRoots":
         return s.inboxRoots.join(", ");
       case "ignorePaths":
@@ -223,8 +283,14 @@ export class TaskgregatorSettingTab extends PluginSettingTab {
   async setControlValue(key: string, value: unknown): Promise<void> {
     const s = this.plugin.settings;
     switch (key) {
+      case "scanScope":
+        s.scanScope = normalizeScanScope(value);
+        break;
       case "bucketRoots":
         s.bucketRoots = splitList(String(value));
+        break;
+      case "showContextTree":
+        s.showContextTree = Boolean(value);
         break;
       case "inboxRoots":
         s.inboxRoots = splitList(String(value));
@@ -272,37 +338,63 @@ export class TaskgregatorSettingTab extends PluginSettingTab {
         return;
     }
     await this.plugin.saveSettings();
+    if (key === "scanScope") {
+      (this as unknown as { refreshDomState?: () => void }).refreshDomState?.();
+    }
   }
 
   display(): void {
+    this.renderSettings();
+  }
+
+  private renderSettings(): void {
     const { containerEl } = this;
     containerEl.empty();
 
-    new Setting(containerEl).setName("Context").setHeading();
+    new Setting(containerEl).setName("Indexing").setHeading();
 
     new Setting(containerEl)
-      .setName("Bucket roots")
-      .setDesc("Comma-separated top-level folders whose files become context buckets.")
-      .addText((t) =>
-        t
-          .setValue(this.plugin.settings.bucketRoots.join(", "))
+      .setName("Indexing scope")
+      .setDesc("Scan configured context roots or every Markdown file in the vault.")
+      .addDropdown((dd) =>
+        dd
+          .addOption("contextRoots", "Context roots")
+          .addOption("wholeVault", "Whole vault")
+          .setValue(this.plugin.settings.scanScope)
           .onChange(async (v) => {
-            this.plugin.settings.bucketRoots = splitList(v);
+            this.plugin.settings.scanScope = normalizeScanScope(v);
             await this.plugin.saveSettings();
+            this.renderSettings();
           })
       );
 
-    new Setting(containerEl)
-      .setName("Inbox roots")
-      .setDesc("Folders treated as a flat inbox (tasks grouped together, not per file). E.g. Dailies.")
-      .addText((t) =>
-        t
-          .setValue(this.plugin.settings.inboxRoots.join(", "))
-          .onChange(async (v) => {
-            this.plugin.settings.inboxRoots = splitList(v);
-            await this.plugin.saveSettings();
-          })
-      );
+    if (this.plugin.settings.scanScope === "contextRoots") {
+      new Setting(containerEl)
+        .setName("Context roots")
+        .setDesc("Comma-separated top-level folders whose files become navigation contexts.")
+        .addText((t) =>
+          t
+            .setValue(this.plugin.settings.bucketRoots.join(", "))
+            .onChange(async (v) => {
+              this.plugin.settings.bucketRoots = splitList(v);
+              await this.plugin.saveSettings();
+            })
+        );
+
+      new Setting(containerEl)
+        .setName("Inbox roots")
+        .setDesc("Folders treated as a flat inbox (tasks grouped together, not per file). E.g. Dailies.")
+        .addText((t) =>
+          t
+            .setValue(this.plugin.settings.inboxRoots.join(", "))
+            .onChange(async (v) => {
+              this.plugin.settings.inboxRoots = splitList(v);
+              await this.plugin.saveSettings();
+            })
+        );
+    }
+
+    new Setting(containerEl).setName("Exclusions").setHeading();
 
     new Setting(containerEl)
       .setName("Ignore paths")
@@ -345,6 +437,8 @@ export class TaskgregatorSettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           })
       );
+
+    new Setting(containerEl).setName("Lists and task behavior").setHeading();
 
     new Setting(containerEl)
       .setName("Priority tags")
@@ -418,6 +512,39 @@ export class TaskgregatorSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
+      .setName("Task metadata format")
+      .setDesc(
+        "How Taskgregator writes dates and priority on new/edited tasks. " +
+          "Auto follows the Tasks plugin's format (emoji if Tasks isn't installed). " +
+          "Reading always understands both emoji and Dataview; existing lines keep their own format."
+      )
+      .addDropdown((dd) =>
+        dd
+          .addOption("auto", "Auto (follow Tasks plugin)")
+          .addOption("emoji", "Emoji (Tasks)")
+          .addOption("dataview", "Dataview")
+          .setValue(this.plugin.settings.taskFormat)
+          .onChange(async (v) => {
+            this.plugin.settings.taskFormat = normalizeTaskFormat(v);
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl).setName("Interface").setHeading();
+
+    if (this.plugin.settings.scanScope === "contextRoots") {
+      new Setting(containerEl)
+        .setName("Show context tree")
+        .setDesc("Show configured contexts and their nested task counts in the navigator.")
+        .addToggle((tg) =>
+          tg.setValue(this.plugin.settings.showContextTree).onChange(async (v) => {
+            this.plugin.settings.showContextTree = v;
+            await this.plugin.saveSettings();
+          })
+        );
+    }
+
+    new Setting(containerEl)
       .setName("Context sidebar")
       .setDesc(
         "Auto-open the file-context task panel in the right sidebar on startup. " +
@@ -456,24 +583,7 @@ export class TaskgregatorSettingTab extends PluginSettingTab {
           })
       );
 
-    new Setting(containerEl)
-      .setName("Task metadata format")
-      .setDesc(
-        "How Taskgregator writes dates and priority on new/edited tasks. " +
-          "Auto follows the Tasks plugin's format (emoji if Tasks isn't installed). " +
-          "Reading always understands both emoji and Dataview; existing lines keep their own format."
-      )
-      .addDropdown((dd) =>
-        dd
-          .addOption("auto", "Auto (follow Tasks plugin)")
-          .addOption("emoji", "Emoji (Tasks)")
-          .addOption("dataview", "Dataview")
-          .setValue(this.plugin.settings.taskFormat)
-          .onChange(async (v) => {
-            this.plugin.settings.taskFormat = normalizeTaskFormat(v);
-            await this.plugin.saveSettings();
-          })
-      );
+    new Setting(containerEl).setName("Maintenance").setHeading();
 
     new Setting(containerEl)
       .setName("Reindex now")
@@ -489,6 +599,10 @@ export class TaskgregatorSettingTab extends PluginSettingTab {
 function normalizeStartupView(value: unknown): StartupView {
   const v = String(value);
   return v === "today" || v === "all" || v === "flagged" ? v : "disabled";
+}
+
+function normalizeScanScope(value: unknown): ScanScope {
+  return value === "wholeVault" ? "wholeVault" : "contextRoots";
 }
 
 function normalizeTaskFormat(value: unknown): TaskFormatSetting {

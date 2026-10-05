@@ -110,6 +110,7 @@ export class TaskgregatorContextView extends ItemView {
       reindexFile: this.deps.reindexFile,
       rerender: () => this.render(),
       agingDays: this.deps.settings.agingDays,
+      showFullPath: this.deps.settings.scanScope === "wholeVault",
       onTagClick: (tag: string) => {
         this.deps.state.selection = { type: "smart", tag, label: "#" + tag };
         void this.deps.openList();

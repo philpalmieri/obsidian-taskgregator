@@ -299,6 +299,10 @@ export async function scanVault(
 
 /** Gather markdown files under the configured bucket/inbox roots only. */
 function collectScopedFiles(app: App, settings: TaskgregatorSettings): TFile[] {
+  if (settings.scanScope === "wholeVault") {
+    return app.vault.getMarkdownFiles();
+  }
+
   const roots = new Set<string>([...settings.bucketRoots, ...settings.inboxRoots]);
   const seen = new Set<string>();
   const out: TFile[] = [];

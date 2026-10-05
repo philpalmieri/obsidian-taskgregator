@@ -28,7 +28,7 @@ Taskgregator flips that. The tool serves your notes.
 
 Everything reads from one shared index, so a selection you make in one place is reflected everywhere.
 
-- **Navigator** (left sidebar): a search box, smart lists, plus a roll-up tree of your context folders, docked right next to Files and Search. Pick one to drive the list.
+- **Navigator** (left sidebar): a search box and smart lists, plus an optional roll-up tree of your configured context folders, docked right next to Files and Search. Pick one to drive the list.
 - **Task list** (main area): the tasks for the current selection, with sort and grouping controls.
 - **Context sidebar** (right sidebar): follows the note you're editing and shows its tasks, filtered by **Page / Section / Reference / All**.
 
@@ -68,7 +68,8 @@ Because Taskgregator understands your task lines, you get a context menu on any 
 
 ## Features
 
-- **Context tree** with roll-up counts. Configure which top-level folders become buckets (default: `Projects`, `People`, `Areas`). Files become sub-nodes; parent nodes aggregate everything beneath them.
+- **Flexible indexing scope.** Scan configured **Context roots** (default: `Projects`, `People`, `Areas`, plus the `Dailies` inbox) or every Markdown file in the vault. Whole-vault mode keeps navigation flat, hides the Context tree, and shows each task's full source path.
+- **Optional context tree** with roll-up counts in Context-roots mode. Files become sub-nodes; parent nodes aggregate everything beneath them. Hide the tree without deleting the configured roots.
 - **Search** across the current scope. Type in the navigator's search box to filter the selected list; the filter follows you as you switch lists so you can search the same term anywhere.
 - **Quick completed-task visibility.** Use the eye toggle beside Reindex to show or hide completed tasks across Taskgregator without opening Settings. The choice persists across restarts. The context sidebar has its own eye toggle for viewing completed tasks in the current Page / Section / Reference scope.
 - **File-level exclusions by metadata.** Ignore every checkbox in a note when its frontmatter contains a configured tag or an exact property rule such as `type=template` or `tasks=false`. File-tag rules use the native `tags` property; inline body tags do not exclude the whole file.
@@ -139,8 +140,10 @@ When Taskgregator *writes* a date or priority, the **Task metadata format** sett
 
 ## Settings
 
-- **Bucket roots**: folders that become top-level context buckets (default `Projects, People, Areas`).
-- **Inbox roots**: folders treated as a flat inbox instead of per-file (default `Dailies`).
+- **Indexing scope**: scan configured **Context roots** or the **Whole vault**.
+- **Context roots**: folders that become top-level navigation contexts (default `Projects, People, Areas`). Hidden while Whole vault is selected, but saved for switching back.
+- **Inbox roots**: folders treated as a flat inbox instead of per-file (default `Dailies`). Used in Context-roots mode.
+- **Show context tree**: show or hide configured contexts in the navigator. Whole-vault mode is always flat.
 - **Ignore paths**: path prefixes to exclude from indexing.
 - **Ignore file tags**: frontmatter tags whose notes should not be scanned, such as `template, checklist, reference`.
 - **Ignore file properties**: exact frontmatter `key=value` rules, one per line, such as `type=template` or `tasks=false`. Any matching tag or property excludes the entire note.
@@ -156,7 +159,7 @@ When Taskgregator *writes* a date or priority, the **Task metadata format** sett
 
 ## What data it touches
 
-Taskgregator only reads markdown files inside the folders you configure as bucket roots and inbox roots (by default `Projects`, `People`, `Areas`, and `Dailies`). It walks those folders directly rather than enumerating your whole vault, then skips files matching any configured path, frontmatter tag, or property exclusion. Files outside the configured roots and files excluded by metadata are never read for tasks. It does not make network requests, and it only writes back to the specific task lines and optional per-task detail notes you act on.
+By default, Taskgregator only reads Markdown files inside the Context roots and inbox roots you configure (`Projects`, `People`, `Areas`, and `Dailies`). You can explicitly switch the indexing scope to Whole vault. In either mode, files matching any configured path, frontmatter tag, or property exclusion are skipped. Taskgregator does not make network requests, and it only writes back to the specific task lines and optional per-task detail notes you act on.
 
 ## License
 

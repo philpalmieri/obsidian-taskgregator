@@ -5,10 +5,12 @@
 ### Added
 - **Completed-task visibility controls.** An eye toggle in the navigator header now shows or hides completed tasks across Taskgregator without opening Settings, and remembers the choice across restarts. The context sidebar has its own matching eye toggle before the due filters for quickly switching the current Page / Section / Reference scope to completed-only tasks.
 - **Ignore files by frontmatter.** In addition to path prefixes, Taskgregator can now skip an entire note when its frontmatter contains a configured tag or an exact `key=value` property match. This supports flat vaults and notes whose checkboxes are not actionable tasks without forcing those notes into special folders. Inline body tags are intentionally not used for file exclusion.
+- **Flat whole-vault mode.** Indexing can now target either configured Context roots or every Markdown file in the vault. Whole-vault mode removes the Context tree from the navigator, keeps smart lists and search, and shows the full source path on every task card.
 
 ### Changed
 - **Jump to source now lands on the task.** Opening a task's source note focuses the editor, places the cursor on the task text, and centers the task line instead of opening the note at its previous scroll position.
 - **Overdue stays actionable.** Completed and cancelled tasks never appear in the Overdue smart list or its badge, even when completed-task visibility is enabled.
+- **Clearer context terminology and settings.** User-facing "Bucket roots" language is now "Context roots." Settings are grouped into Indexing, Exclusions, Lists and task behavior, Interface, and Maintenance. Root-specific controls are hidden in Whole-vault mode without deleting their saved values.
 
 ## 2.5.0
 
