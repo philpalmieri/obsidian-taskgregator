@@ -18,6 +18,10 @@ export interface TaskgregatorSettings {
   bucketRoots: string[];
   // Glob-ish path prefixes to ignore entirely.
   ignorePaths: string[];
+  // Frontmatter tags that exclude an entire file from task scanning.
+  ignoreFileTags: string[];
+  // Exact frontmatter property rules in key=value form.
+  ignoreFileProperties: string[];
   // Treat these bucket roots as "inbox" style (group all tasks flat, not per-file).
   inboxRoots: string[];
   // Priority tags in order of importance (highest first).
@@ -54,6 +58,8 @@ export interface TaskgregatorSettings {
 export const DEFAULT_SETTINGS: TaskgregatorSettings = {
   bucketRoots: ["Projects", "People", "Areas"],
   ignorePaths: ["Archive/", "Templates/"],
+  ignoreFileTags: [],
+  ignoreFileProperties: [],
   inboxRoots: ["Dailies"],
   priorityTags: ["p1", "p2", "p3"],
   smartLists: [
@@ -105,6 +111,16 @@ export class TaskgregatorSettingTab extends PluginSettingTab {
         name: "Ignore paths",
         desc: "Comma-separated path prefixes to exclude from indexing.",
         control: { type: "text", key: "ignorePaths" },
+      },
+      {
+        name: "Ignore file tags",
+        desc: "Comma-separated frontmatter tags whose files should not be scanned.",
+        control: { type: "text", key: "ignoreFileTags" },
+      },
+      {
+        name: "Ignore file properties",
+        desc: "Frontmatter rules in key=value form, one per line. Any match excludes the file.",
+        control: { type: "textarea", key: "ignoreFileProperties" },
       },
       {
         name: "Priority tags",
@@ -175,6 +191,10 @@ export class TaskgregatorSettingTab extends PluginSettingTab {
         return s.inboxRoots.join(", ");
       case "ignorePaths":
         return s.ignorePaths.join(", ");
+      case "ignoreFileTags":
+        return s.ignoreFileTags.join(", ");
+      case "ignoreFileProperties":
+        return s.ignoreFileProperties.join("\n");
       case "priorityTags":
         return s.priorityTags.join(", ");
       case "smartLists":
@@ -211,6 +231,12 @@ export class TaskgregatorSettingTab extends PluginSettingTab {
         break;
       case "ignorePaths":
         s.ignorePaths = splitList(String(value));
+        break;
+      case "ignoreFileTags":
+        s.ignoreFileTags = splitList(String(value)).map(normalizeTag);
+        break;
+      case "ignoreFileProperties":
+        s.ignoreFileProperties = splitRules(String(value));
         break;
       case "priorityTags":
         s.priorityTags = splitList(String(value)).map((x) => x.replace(/^#/, ""));
@@ -286,6 +312,36 @@ export class TaskgregatorSettingTab extends PluginSettingTab {
           .setValue(this.plugin.settings.ignorePaths.join(", "))
           .onChange(async (v) => {
             this.plugin.settings.ignorePaths = splitList(v);
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName("Ignore file tags")
+      .setDesc(
+        "Comma-separated frontmatter tags whose files should not be scanned. " +
+          "For example: template, checklist, reference."
+      )
+      .addText((t) =>
+        t
+          .setValue(this.plugin.settings.ignoreFileTags.join(", "))
+          .onChange(async (v) => {
+            this.plugin.settings.ignoreFileTags = splitList(v).map(normalizeTag);
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName("Ignore file properties")
+      .setDesc(
+        "Exact frontmatter rules in key=value form, one per line. " +
+          "For example: type=template or tasks=false. Any match excludes the entire file."
+      )
+      .addTextArea((t) =>
+        t
+          .setValue(this.plugin.settings.ignoreFileProperties.join("\n"))
+          .onChange(async (v) => {
+            this.plugin.settings.ignoreFileProperties = splitRules(v);
             await this.plugin.saveSettings();
           })
       );
@@ -451,6 +507,17 @@ function splitList(v: string): string[] {
     .split(",")
     .map((s) => s.trim())
     .filter((s) => s.length > 0);
+}
+
+function splitRules(v: string): string[] {
+  return v
+    .split(/\r?\n|,/)
+    .map((s) => s.trim())
+    .filter((s) => s.includes("=") && s.length > 2);
+}
+
+function normalizeTag(tag: string): string {
+  return tag.trim().replace(/^#/, "").toLowerCase();
 }
 
 function parseSmartLists(v: string): SmartList[] {

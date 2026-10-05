@@ -1,4 +1,9 @@
-import { App, TFile, TFolder } from "obsidian";
+import {
+  App,
+  parseFrontMatterTags,
+  TFile,
+  TFolder,
+} from "obsidian";
 import { RawTaskMeta, TaskItem, TaskStatus } from "./types";
 import { TaskgregatorSettings } from "./settings";
 import {
@@ -210,8 +215,67 @@ export function nodeKeyForFile(
   return { rootName, flat, fileKey };
 }
 
-function isIgnored(path: string, settings: TaskgregatorSettings): boolean {
+function isIgnoredPath(path: string, settings: TaskgregatorSettings): boolean {
   return settings.ignorePaths.some((p) => path.startsWith(p));
+}
+
+function normalizeFileTag(tag: string): string {
+  return tag.trim().replace(/^#/, "").toLowerCase();
+}
+
+function normalizePropertyValue(value: string): string {
+  const trimmed = value.trim();
+  const unquoted =
+    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"))
+      ? trimmed.slice(1, -1)
+      : trimmed;
+  return unquoted.trim().toLowerCase();
+}
+
+function propertyValueMatches(actual: unknown, expected: string): boolean {
+  if (Array.isArray(actual)) {
+    return actual.some((value) => propertyValueMatches(value, expected));
+  }
+  if (
+    typeof actual !== "string" &&
+    typeof actual !== "number" &&
+    typeof actual !== "boolean"
+  ) {
+    return false;
+  }
+  return String(actual).trim().toLowerCase() === expected;
+}
+
+function isIgnoredFile(
+  app: App,
+  file: TFile,
+  settings: TaskgregatorSettings
+): boolean {
+  if (isIgnoredPath(file.path, settings)) return true;
+
+  const frontmatter = app.metadataCache.getFileCache(file)?.frontmatter;
+  if (!frontmatter) return false;
+
+  if (settings.ignoreFileTags.length > 0) {
+    const ignoredTags = new Set(settings.ignoreFileTags.map(normalizeFileTag));
+    const fileTags = parseFrontMatterTags(frontmatter) ?? [];
+    if (fileTags.some((tag) => ignoredTags.has(normalizeFileTag(tag)))) return true;
+  }
+
+  if (settings.ignoreFileProperties.length > 0) {
+    const entries = Object.entries(frontmatter);
+    for (const rule of settings.ignoreFileProperties) {
+      const separator = rule.indexOf("=");
+      if (separator <= 0) continue;
+      const key = rule.slice(0, separator).trim().toLowerCase();
+      const expected = normalizePropertyValue(rule.slice(separator + 1));
+      const match = entries.find(([name]) => name.toLowerCase() === key);
+      if (match && propertyValueMatches(match[1], expected)) return true;
+    }
+  }
+
+  return false;
 }
 
 /**
@@ -226,7 +290,7 @@ export async function scanVault(
   const files = collectScopedFiles(app, settings);
   const out: TaskItem[] = [];
   for (const file of files) {
-    if (isIgnored(file.path, settings)) continue;
+    if (isIgnoredFile(app, file, settings)) continue;
     const tasks = await scanFile(app, file, settings);
     out.push(...tasks);
   }
@@ -269,7 +333,7 @@ export async function scanFile(
   file: TFile,
   settings: TaskgregatorSettings
 ): Promise<TaskItem[]> {
-  if (isIgnored(file.path, settings)) return [];
+  if (isIgnoredFile(app, file, settings)) return [];
   const content = await app.vault.cachedRead(file);
   const lines = content.split("\n");
   const out: TaskItem[] = [];

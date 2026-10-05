@@ -71,6 +71,7 @@ Because Taskgregator understands your task lines, you get a context menu on any 
 - **Context tree** with roll-up counts. Configure which top-level folders become buckets (default: `Projects`, `People`, `Areas`). Files become sub-nodes; parent nodes aggregate everything beneath them.
 - **Search** across the current scope. Type in the navigator's search box to filter the selected list; the filter follows you as you switch lists so you can search the same term anywhere.
 - **Quick completed-task visibility.** Use the eye toggle beside Reindex to show or hide completed tasks across Taskgregator without opening Settings. The choice persists across restarts. The context sidebar has its own eye toggle for viewing completed tasks in the current Page / Section / Reference scope.
+- **File-level exclusions by metadata.** Ignore every checkbox in a note when its frontmatter contains a configured tag or an exact property rule such as `type=template` or `tasks=false`. File-tag rules use the native `tags` property; inline body tags do not exclude the whole file.
 - **Cross-indexing by wikilink.** A task that links `[[People/Alex]]` appears under Alex's node even though it was authored elsewhere.
 - **Context sidebar** that follows the active note and scopes its tasks by Page, Section (folder subtree / folder note), or Reference.
 - **Date smart lists**: **Overdue** (past due, auto-hides when empty), **Today** (due exactly today), **Tomorrow**, and **Soon** (due within a configurable window, default 7 days). Plus Flagged (by priority) and All.
@@ -141,6 +142,8 @@ When Taskgregator *writes* a date or priority, the **Task metadata format** sett
 - **Bucket roots**: folders that become top-level context buckets (default `Projects, People, Areas`).
 - **Inbox roots**: folders treated as a flat inbox instead of per-file (default `Dailies`).
 - **Ignore paths**: path prefixes to exclude from indexing.
+- **Ignore file tags**: frontmatter tags whose notes should not be scanned, such as `template, checklist, reference`.
+- **Ignore file properties**: exact frontmatter `key=value` rules, one per line, such as `type=template` or `tasks=false`. Any matching tag or property excludes the entire note.
 - **Priority tags**: fallback priority tags (default `p1, p2, p3`).
 - **Smart lists**: cross-cutting tag lists (`Name:tag` pairs).
 - **Detail-note folder**: where sidecars are stored (default `Taskgregator/tasksData`).
@@ -153,7 +156,7 @@ When Taskgregator *writes* a date or priority, the **Task metadata format** sett
 
 ## What data it touches
 
-Taskgregator only reads markdown files inside the folders you configure as bucket roots and inbox roots (by default `Projects`, `People`, `Areas`, and `Dailies`). It walks those folders directly rather than enumerating your whole vault, so files outside your configured roots are never opened. It does not make network requests, and it only writes back to the specific task lines and optional per-task detail notes you act on.
+Taskgregator only reads markdown files inside the folders you configure as bucket roots and inbox roots (by default `Projects`, `People`, `Areas`, and `Dailies`). It walks those folders directly rather than enumerating your whole vault, then skips files matching any configured path, frontmatter tag, or property exclusion. Files outside the configured roots and files excluded by metadata are never read for tasks. It does not make network requests, and it only writes back to the specific task lines and optional per-task detail notes you act on.
 
 ## License
 
