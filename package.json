@@ -5,7 +5,9 @@
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",
-    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production"
+    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+    "validate": "npx --yes obsidian-plugin-validator .",
+    "check": "npm run build && npm run validate"
   },
   "keywords": [
     "obsidian",
