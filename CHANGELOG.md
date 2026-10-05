@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- **Jump to source now lands on the task.** Opening a task's source note focuses the editor, places the cursor on the task text, and centers the task line instead of opening the note at its previous scroll position.
+
 ## 2.5.0
 
 Feature release. Old, still-open work stops slipping through the cracks, and you can now sort by when a task was created everywhere it matters.

@@ -38,7 +38,7 @@ A search box at the top of the navigator filters tasks as you type. It scopes to
 
 ### The task list
 
-Group by project, sort by whatever you care about, and jump straight back to the source note from any card (shown above). **Sort** and **Group** are two rows of small pills; Sort pills are tri-state (click to cycle ascending → descending → off, back to the default priority order), and Group is single-select. Right-click any row for the same quick actions you get in the editor: priority, dates, `#today`, detail note, or cancel.
+Group by project, sort by whatever you care about, and jump straight back to the task in its source note from any card (shown above). Taskgregator centers the task line, focuses the editor, and places the cursor after the checkbox so you can edit immediately. **Sort** and **Group** are two rows of small pills; Sort pills are tri-state (click to cycle ascending → descending → off, back to the default priority order), and Group is single-select. Right-click any row for the same quick actions you get in the editor: priority, dates, `#today`, detail note, or cancel.
 
 ![Pill-based Sort and Group controls on the Overdue list](assets/2.4.0/2.4.0-sortandfilter-main.png)
 
@@ -76,7 +76,7 @@ Because Taskgregator understands your task lines, you get a context menu on any 
 
 ![Navigator smart lists, including a red Overdue badge](assets/2.4.0/2.4.0-overdue.png)
 - **Tag smart lists** driven by tags: Follow-up, Snippet Ideas, Someday, and any others you configure.
-- **Inline editing** from the panel: toggle done/cancelled, cycle priority, set due/start dates, add tags, jump to source, all written back to the original markdown line. Right-click a row for the full menu.
+- **Inline editing** from the panel: toggle done/cancelled, cycle priority, set due/start dates, add tags, or jump directly to the task line in its source note. Every edit writes back to the original markdown line. Right-click a row for the full menu.
 - **Priority** using Tasks-plugin emoji signifiers (🔺 ⏫ 🔼) or Dataview `[priority:: high]` fields, so it stays compatible with whatever you already use.
 - **Reads both task dialects.** Understands Tasks-plugin emoji metadata *and* Dataview inline fields (`[due:: ]`, `[priority:: ]`, etc.), so every smart list, filter, sort, and grouping works no matter how a task was written. When it writes back it follows your **Task metadata format** setting (Auto follows the Tasks plugin) and keeps each existing line in its own format.
 - **Per-task detail notes (sidecars).** Optionally attach a full markdown note to any task for extended context, links, and history. The task gets a lightweight block id (`^id`) only when you enrich it, and the sidecar backlinks to the source line. The raw id is hidden on the page: it shows as a small 📝 note icon in both Reading view and Live Preview (click to open; put your cursor on the line to reveal the id). A 📝 chip on the card opens it too.
@@ -130,7 +130,7 @@ When Taskgregator *writes* a date or priority, the **Task metadata format** sett
 - The **navigator** opens in the left sidebar (its ✓✓ tab sits next to Files and Search). You can also run **Taskgregator: Open panel** from the command palette.
 - **Search** from the box at the top of the navigator to filter the current list; it keeps filtering as you switch lists. Clear with the **×** or **Esc**.
 - Click a smart list or a tree node to load its tasks in the main list.
-- On a task card: click the checkbox to complete, the flag to cycle priority, the `⋯` menu (or right-click) for dates/detail-note/cancel, a chip to jump to its source, or the 📝 chip to open its detail note.
+- On a task card: click the checkbox to complete, the flag to cycle priority, the `⋯` menu (or right-click) for dates/detail-note/cancel, a chip to jump directly to the task line in its source note, or the 📝 chip to open its detail note.
 - The **context sidebar** (right) tracks the note you're editing; use the Page / Section / Reference tabs to change scope.
 - Right-click any task line in the editor for the same actions inline.
 

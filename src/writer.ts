@@ -177,7 +177,7 @@ export function sidecarPathFor(settings: TaskgregatorSettings, blockId: string):
 }
 
 /** Locate the exact line index for a task, resilient to small shifts. */
-function findLine(lines: string[], task: TaskItem): number {
+export function findTaskLine(lines: string[], task: TaskItem): number {
   if (task.blockId) {
     const needle = "^" + task.blockId;
     const idx = lines.findIndex((l) => l.trimEnd().endsWith(needle));
@@ -207,7 +207,7 @@ export class TaskWriter {
     if (!(file instanceof TFile)) return;
     await this.app.vault.process(file, (data) => {
       const lines = data.split("\n");
-      const idx = findLine(lines, task);
+      const idx = findTaskLine(lines, task);
       if (idx < 0) return data;
       lines[idx] = transform(lines[idx]);
       return lines.join("\n");

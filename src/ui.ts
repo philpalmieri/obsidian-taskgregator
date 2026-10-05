@@ -1,6 +1,6 @@
-import { App, Menu, Modal, setIcon } from "obsidian";
+import { App, MarkdownView, Menu, Modal, TFile, setIcon } from "obsidian";
 import { TaskItem } from "./types";
-import { TaskWriter } from "./writer";
+import { findTaskLine, TaskWriter } from "./writer";
 
 /**
  * Shared task-row rendering used by both the full Taskgregator hub view and the
@@ -37,9 +37,30 @@ export function formatAge(days: number): string {
   return `${days} ${days === 1 ? "Day" : "Days"}`;
 }
 
-export function jumpToSource(app: App, task: TaskItem): void {
-  const link = task.blockId ? `${task.filePath}#^${task.blockId}` : task.filePath;
-  void app.workspace.openLinkText(link, "", false);
+export async function jumpToSource(app: App, task: TaskItem): Promise<void> {
+  const file = app.vault.getAbstractFileByPath(task.filePath);
+  if (!(file instanceof TFile)) return;
+
+  const leaf = app.workspace.getLeaf(false);
+  await leaf.openFile(file, { active: true });
+  if (!(leaf.view instanceof MarkdownView)) return;
+
+  const editor = leaf.view.editor;
+  const lines = editor.getValue().split("\n");
+  const line = findTaskLine(lines, task);
+  if (line < 0) return;
+
+  const taskPrefix = lines[line].match(/^\s*[-*+]\s+\[.\]\s?/)?.[0];
+  const cursor = { line, ch: taskPrefix?.length ?? 0 };
+  editor.setCursor(cursor);
+  editor.scrollIntoView(
+    {
+      from: { line, ch: 0 },
+      to: { line, ch: lines[line].length },
+    },
+    true
+  );
+  editor.focus();
 }
 
 export function renderTaskRow(parent: HTMLElement, task: TaskItem, ctx: TaskRowCtx): void {
@@ -75,7 +96,7 @@ export function renderTaskRow(parent: HTMLElement, task: TaskItem, ctx: TaskRowC
   }
   const ctxChip = meta.createSpan({ cls: "tg-chip tg-ctx" });
   ctxChip.setText(`${task.bucketRoot}: ${task.bucketFile}`);
-  ctxChip.onclick = () => jumpToSource(ctx.app, task);
+  ctxChip.onclick = () => void jumpToSource(ctx.app, task);
   if (task.meta.due) {
     const d = meta.createSpan({ cls: "tg-chip tg-due" });
     if (task.meta.due < todayStr()) d.addClass("is-overdue");
@@ -185,7 +206,10 @@ function taskMenu(e: MouseEvent, task: TaskItem, ctx: TaskRowCtx): void {
     })
   );
   menu.addItem((i) =>
-    i.setTitle("Jump to source").setIcon("arrow-up-right").onClick(() => jumpToSource(ctx.app, task))
+    i
+      .setTitle("Jump to source")
+      .setIcon("arrow-up-right")
+      .onClick(() => void jumpToSource(ctx.app, task))
   );
   menu.addSeparator();
   menu.addItem((i) =>
