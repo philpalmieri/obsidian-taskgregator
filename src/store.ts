@@ -203,7 +203,12 @@ export class TaskStore {
   /** Tasks due before today (Overdue smart list core). */
   overdue(): TaskItem[] {
     const today = this.dayOffset(0);
-    return this.visible().filter((t) => t.meta.due && t.meta.due < today);
+    return this.visible().filter(
+      (t) =>
+        (t.status === "open" || t.status === "inProgress") &&
+        !!t.meta.due &&
+        t.meta.due < today
+    );
   }
 
   /** Tasks due exactly today (Today smart list core). */

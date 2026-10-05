@@ -69,6 +69,7 @@ export class TaskgregatorContextView extends ItemView {
   /** Filter a task list by the selected due-date window. */
   private filterByDue(tasks: TaskItem[], filter: DueFilter): TaskItem[] {
     if (filter === "all") return tasks;
+    if (filter === "completed") return tasks.filter((t) => t.status === "done");
     const today = new Date().toISOString().slice(0, 10);
     if (filter === "overdue") return tasks.filter((t) => t.meta.due && t.meta.due < today);
     if (filter === "today") return tasks.filter((t) => t.meta.due === today);
@@ -127,6 +128,7 @@ export class TaskgregatorContextView extends ItemView {
     }
 
     const ctx = computeContext(this.app, this.deps.store, this.file);
+    const fullCtx = computeContext(this.app, this.deps.store, this.file, true);
 
     const header = root.createDiv({ cls: "tg-context-header" });
     const title = header.createDiv({ cls: "tg-context-title" });
@@ -138,10 +140,34 @@ export class TaskgregatorContextView extends ItemView {
 
     // Subtle due-date filter (applies within the active scope tab).
     const state = this.deps.state;
-    const scopeTasks = ctx.scopes[state.contextTab];
+    const scopeTasks =
+      state.contextDueFilter === "completed"
+        ? fullCtx.scopes[state.contextTab]
+        : ctx.scopes[state.contextTab];
     const filterRow = root.createDiv({ cls: "tg-duefilter" });
+    const completedCount = this.filterByDue(
+      fullCtx.scopes[state.contextTab],
+      "completed"
+    ).length;
+    const completedActive = state.contextDueFilter === "completed";
+    const completedToggle = filterRow.createDiv({
+      cls:
+        "tg-duefilter-seg tg-duefilter-icon" +
+        (completedActive ? " is-active" : "") +
+        (completedCount === 0 ? " is-empty" : ""),
+    });
+    setIcon(completedToggle, completedActive ? "eye" : "eye-off");
+    completedToggle.setAttr(
+      "aria-label",
+      completedActive ? "Hide completed tasks" : "Show completed tasks"
+    );
+    completedToggle.onclick = () => {
+      state.contextDueFilter = completedActive ? "all" : "completed";
+      this.render();
+    };
+
     for (const [key, label] of DUE_FILTERS) {
-      const n = this.filterByDue(scopeTasks, key).length;
+      const n = this.filterByDue(ctx.scopes[state.contextTab], key).length;
       const seg = filterRow.createDiv({
         cls:
           "tg-duefilter-seg" +

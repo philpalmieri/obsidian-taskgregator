@@ -50,6 +50,10 @@ export default class Taskgregator extends Plugin {
           if (view instanceof TaskgregatorView) view.render();
         }
       },
+      setShowCompleted: async (show: boolean) => {
+        this.settings.showCompleted = show;
+        await this.saveSettings();
+      },
     };
 
     this.registerView(

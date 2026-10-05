@@ -33,6 +33,15 @@
   opacity: 0.7;
 }
 .taskgregator .tg-icon-btn:hover { opacity: 1; }
+.taskgregator .tg-icon-btn.is-active {
+  color: var(--interactive-accent);
+  opacity: 1;
+}
+.taskgregator .tg-side-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 
 .taskgregator .tg-search {
   padding: 0 8px 8px;
@@ -433,6 +442,15 @@
 }
 .taskgregator.tg-context .tg-duefilter-seg.is-empty {
   opacity: 0.35;
+}
+.taskgregator.tg-context .tg-duefilter-icon {
+  display: inline-flex;
+  align-items: center;
+  padding-inline: 6px;
+}
+.taskgregator.tg-context .tg-duefilter-icon svg {
+  width: 14px;
+  height: 14px;
 }
 /* Tri-state sort row; segments line up with the due-filter/tab "All" columns. */
 .taskgregator.tg-context .tg-context-sort {

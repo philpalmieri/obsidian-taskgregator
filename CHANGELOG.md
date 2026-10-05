@@ -2,8 +2,12 @@
 
 ## Unreleased
 
+### Added
+- **Completed-task visibility controls.** An eye toggle in the navigator header now shows or hides completed tasks across Taskgregator without opening Settings, and remembers the choice across restarts. The context sidebar has its own matching eye toggle before the due filters for quickly switching the current Page / Section / Reference scope to completed-only tasks.
+
 ### Changed
 - **Jump to source now lands on the task.** Opening a task's source note focuses the editor, places the cursor on the task text, and centers the task line instead of opening the note at its previous scroll position.
+- **Overdue stays actionable.** Completed and cancelled tasks never appear in the Overdue smart list or its badge, even when completed-task visibility is enabled.
 
 ## 2.5.0
 

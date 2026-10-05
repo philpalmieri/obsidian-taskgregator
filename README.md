@@ -44,7 +44,7 @@ Group by project, sort by whatever you care about, and jump straight back to the
 
 ### The context sidebar
 
-While you're writing a note, the right sidebar shows that note's tasks, so you never lose track of what a page owns. A subtle `All · Overdue · Today · Soon` due filter sits above the scope tabs and narrows the current scope by due window (windows with nothing in them are dimmed). Your scope and filter choices stick for the session.
+While you're writing a note, the right sidebar shows that note's tasks, so you never lose track of what a page owns. A subtle eye toggle followed by `All · Overdue · Today · Soon` sits above the scope tabs. The eye switches the current scope to completed-only tasks, while the text filters narrow active work by due window (controls with nothing in them are dimmed). Your scope and filter choices stick for the session.
 
 ![All / Overdue / Today / Soon due filter above the context sidebar tabs](assets/2.4.0/2.4.0-filter-sidebar.png)
 
@@ -70,6 +70,7 @@ Because Taskgregator understands your task lines, you get a context menu on any 
 
 - **Context tree** with roll-up counts. Configure which top-level folders become buckets (default: `Projects`, `People`, `Areas`). Files become sub-nodes; parent nodes aggregate everything beneath them.
 - **Search** across the current scope. Type in the navigator's search box to filter the selected list; the filter follows you as you switch lists so you can search the same term anywhere.
+- **Quick completed-task visibility.** Use the eye toggle beside Reindex to show or hide completed tasks across Taskgregator without opening Settings. The choice persists across restarts. The context sidebar has its own eye toggle for viewing completed tasks in the current Page / Section / Reference scope.
 - **Cross-indexing by wikilink.** A task that links `[[People/Alex]]` appears under Alex's node even though it was authored elsewhere.
 - **Context sidebar** that follows the active note and scopes its tasks by Page, Section (folder subtree / folder note), or Reference.
 - **Date smart lists**: **Overdue** (past due, auto-hides when empty), **Today** (due exactly today), **Tomorrow**, and **Soon** (due within a configurable window, default 7 days). Plus Flagged (by priority) and All.
@@ -129,6 +130,7 @@ When Taskgregator *writes* a date or priority, the **Task metadata format** sett
 
 - The **navigator** opens in the left sidebar (its ✓✓ tab sits next to Files and Search). You can also run **Taskgregator: Open panel** from the command palette.
 - **Search** from the box at the top of the navigator to filter the current list; it keeps filtering as you switch lists. Clear with the **×** or **Esc**.
+- Use the **eye toggle** beside Reindex to show or hide completed tasks everywhere. In the context sidebar, its eye toggle switches the active scope to completed-only tasks.
 - Click a smart list or a tree node to load its tasks in the main list.
 - On a task card: click the checkbox to complete, the flag to cycle priority, the `⋯` menu (or right-click) for dates/detail-note/cancel, a chip to jump directly to the task line in its source note, or the 📝 chip to open its detail note.
 - The **context sidebar** (right) tracks the note you're editing; use the Page / Section / Reference tabs to change scope.
@@ -144,7 +146,7 @@ When Taskgregator *writes* a date or priority, the **Task metadata format** sett
 - **Detail-note folder**: where sidecars are stored (default `Taskgregator/tasksData`).
 - **Soon window (days)**: how many days ahead the **Soon** smart list looks (default 7).
 - **Task metadata format**: how Taskgregator writes dates and priority: **Auto** (follow the Tasks plugin, emoji if it isn't installed), **Emoji**, or **Dataview**. Reading always understands both.
-- **Show completed tasks**: include done/cancelled tasks in the index.
+- **Show completed tasks**: choose whether done/cancelled tasks are visible by default. The navigator eye toggle updates this setting directly.
 - **Context sidebar**: enable the right-sidebar panel that follows the active note.
 
 ![Settings](assets/settings.png)

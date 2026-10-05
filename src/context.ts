@@ -5,7 +5,7 @@ import { TaskStore } from "./store";
 export type ContextScope = "all" | "page" | "section" | "reference";
 
 // Due-date filter applied on top of the active scope in the context sidebar.
-export type DueFilter = "all" | "overdue" | "today" | "soon";
+export type DueFilter = "all" | "overdue" | "today" | "soon" | "completed";
 
 export interface ContextResult {
   title: string;
@@ -57,9 +57,10 @@ function resolvesInto(
 export function computeContext(
   app: App,
   store: TaskStore,
-  file: TFile
+  file: TFile,
+  includeHidden = false
 ): ContextResult {
-  const visible = store.visible();
+  const visible = includeHidden ? store.all() : store.visible();
   const folderNote = isFolderNote(file);
 
   const page = visible.filter((t) => t.filePath === file.path);

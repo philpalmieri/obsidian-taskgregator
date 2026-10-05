@@ -54,7 +54,20 @@ export class TaskgregatorNavView extends ItemView {
 
     const header = el.createDiv({ cls: "tg-side-header" });
     header.createSpan({ text: "Taskgregator" });
-    const reload = header.createSpan({ cls: "tg-icon-btn" });
+    const actions = header.createDiv({ cls: "tg-side-actions" });
+    const completed = actions.createSpan({
+      cls: "tg-icon-btn" + (this.deps.settings.showCompleted ? " is-active" : ""),
+    });
+    setIcon(completed, this.deps.settings.showCompleted ? "eye" : "eye-off");
+    completed.setAttr(
+      "aria-label",
+      this.deps.settings.showCompleted ? "Hide completed tasks" : "Show completed tasks"
+    );
+    completed.onclick = () => {
+      void this.deps.setShowCompleted(!this.deps.settings.showCompleted);
+    };
+
+    const reload = actions.createSpan({ cls: "tg-icon-btn" });
     setIcon(reload, "refresh-cw");
     reload.setAttr("aria-label", "Reindex");
     reload.onclick = () => this.deps.refresh();

@@ -42,6 +42,8 @@ export interface ViewDeps {
   // Re-render only the center list view(s) (used by search-as-you-type so the
   // nav's search input keeps focus).
   rerenderList: () => void;
+  // Persist completed-task visibility and refresh every Taskgregator surface.
+  setShowCompleted: (show: boolean) => Promise<void>;
 }
 
 /**
