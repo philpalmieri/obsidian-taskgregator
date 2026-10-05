@@ -100,7 +100,7 @@ export function renderTaskRow(parent: HTMLElement, task: TaskItem, ctx: TaskRowC
   ctxChip.setText(
     ctx.showFullPath
       ? task.filePath.replace(/\.md$/i, "")
-      : `${task.bucketRoot}: ${task.bucketFile}`
+      : `${task.contextRoot}: ${task.contextFile}`
   );
   ctxChip.onclick = () => void jumpToSource(ctx.app, task);
   if (task.meta.due) {

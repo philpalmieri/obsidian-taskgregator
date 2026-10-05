@@ -28,8 +28,8 @@ export interface TaskItem {
   priority: number; // 0 = none, 1 = highest .. higher number = lower priority
   meta: RawTaskMeta;
   // Derived context:
-  bucketRoot: string; // "Projects" | "People" | "Areas" | "Dailies" | "Other"
-  bucketFile: string; // basename of the source file, no extension
+  contextRoot: string; // "Projects" | "People" | "Areas" | "Dailies" | "Other"
+  contextFile: string; // basename of the source file, no extension
   sidecarPath?: string; // Taskgregator/tasksData/<id>.md if it exists
 }
 

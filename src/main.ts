@@ -432,8 +432,14 @@ export default class Taskgregator extends Plugin {
   }
 
   async loadSettings(): Promise<void> {
-    const data = (await this.loadData()) as Partial<TaskgregatorSettings> | null;
-    this.settings = Object.assign({}, DEFAULT_SETTINGS, data ?? {});
+    const data = (await this.loadData()) as
+      | (Partial<TaskgregatorSettings> & { bucketRoots?: string[] })
+      | null;
+    const contextRoots =
+      data?.contextRoots ?? data?.bucketRoots ?? DEFAULT_SETTINGS.contextRoots;
+    const settings = Object.assign({}, DEFAULT_SETTINGS, data ?? {}, { contextRoots });
+    delete (settings as Partial<TaskgregatorSettings> & { bucketRoots?: string[] }).bucketRoots;
+    this.settings = settings;
   }
 
   async saveSettings(): Promise<void> {

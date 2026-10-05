@@ -156,8 +156,8 @@ export function parseLine(
   text = stripDataviewFields(text);
   text = text.replace(/\s{2,}/g, " ").trim();
 
-  // Bucket context from the path.
-  const { bucketRoot, bucketFile } = deriveBucket(filePath, settings);
+  // Context from the source path.
+  const { contextRoot, contextFile } = deriveContext(filePath, settings);
 
   const id = blockId ? `${filePath}#^${blockId}` : `${filePath}:${line}`;
 
@@ -176,22 +176,22 @@ export function parseLine(
     links,
     priority,
     meta,
-    bucketRoot,
-    bucketFile,
+    contextRoot,
+    contextFile,
   };
 }
 
-export function deriveBucket(
+export function deriveContext(
   filePath: string,
   settings: TaskgregatorSettings
-): { bucketRoot: string; bucketFile: string } {
+): { contextRoot: string; contextFile: string } {
   const parts = filePath.split("/");
   const base = parts[parts.length - 1].replace(/\.md$/i, "");
   const root = parts.length > 1 ? parts[0] : "Other";
-  const known = settings.bucketRoots.concat(settings.inboxRoots);
+  const known = settings.contextRoots.concat(settings.inboxRoots);
   return {
-    bucketRoot: known.includes(root) ? root : "Other",
-    bucketFile: base,
+    contextRoot: known.includes(root) ? root : "Other",
+    contextFile: base,
   };
 }
 
@@ -207,9 +207,9 @@ export function nodeKeyForFile(
 ): { rootName: string; flat: boolean; fileKey: string } {
   const parts = filePath.split("/");
   const root = parts.length > 1 ? parts[0] : "Other";
-  const inBucket = settings.bucketRoots.includes(root);
+  const inContext = settings.contextRoots.includes(root);
   const inInbox = settings.inboxRoots.includes(root);
-  const rootName = inBucket || inInbox ? root : "Other";
+  const rootName = inContext || inInbox ? root : "Other";
   const flat = inInbox || rootName === "Other";
   const fileKey = flat ? rootName : filePath.replace(/\.md$/i, "");
   return { rootName, flat, fileKey };
@@ -280,7 +280,7 @@ function isIgnoredFile(
 
 /**
  * Scan for tasks. To limit vault access to only what the plugin needs, this
- * walks the folders the user configured as bucket/inbox roots instead of
+ * walks the folders the user configured as context/inbox roots instead of
  * enumerating every file in the vault. Files outside those roots are never read.
  */
 export async function scanVault(
@@ -297,13 +297,13 @@ export async function scanVault(
   return out;
 }
 
-/** Gather markdown files under the configured bucket/inbox roots only. */
+/** Gather Markdown files under the configured context/inbox roots only. */
 function collectScopedFiles(app: App, settings: TaskgregatorSettings): TFile[] {
   if (settings.scanScope === "wholeVault") {
     return app.vault.getMarkdownFiles();
   }
 
-  const roots = new Set<string>([...settings.bucketRoots, ...settings.inboxRoots]);
+  const roots = new Set<string>([...settings.contextRoots, ...settings.inboxRoots]);
   const seen = new Set<string>();
   const out: TFile[] = [];
 

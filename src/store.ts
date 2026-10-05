@@ -45,7 +45,7 @@ export class TaskStore {
     if (!q) return tasks;
     const terms = q.split(/\s+/);
     return tasks.filter((t) => {
-      const hay = [t.text, t.rawText, t.tags.join(" "), t.links.join(" "), t.bucketFile]
+      const hay = [t.text, t.rawText, t.tags.join(" "), t.links.join(" "), t.contextFile]
         .join(" ")
         .toLowerCase();
       return terms.every((term) => hay.includes(term));
@@ -53,19 +53,19 @@ export class TaskStore {
   }
 
   /**
-   * Build the context tree: bucketRoot -> file -> tasks, with rolled-up open counts.
+   * Build the context tree: context root -> file -> tasks, with rolled-up open counts.
    * Inbox roots collapse to a single node per root (flat).
    */
   /**
-   * Build the context tree: bucketRoot -> nested folders -> file -> tasks, with
+   * Build the context tree: context root -> nested folders -> file -> tasks, with
    * rolled-up (deduped) open counts at every level. Inbox roots and the catch-all
    * "Other" root collapse to a single flat node.
-   * Cross-index: a task that links to a file under a bucket root also appears under
+   * Cross-index: a task that links to a file under a context root also appears under
    * that file's node, even when authored elsewhere.
    */
   buildContextTree(): TreeNode[] {
     const visible = this.visible();
-    const rootsOrder = this.settings.bucketRoots.concat(
+    const rootsOrder = this.settings.contextRoots.concat(
       this.settings.inboxRoots,
       ["Other"]
     );
@@ -128,7 +128,7 @@ export class TaskStore {
         const dest = this.app.metadataCache.getFirstLinkpathDest(link, t.filePath);
         if (!dest) continue;
         const parts = dest.path.split("/");
-        if (parts.length < 2 || !this.settings.bucketRoots.includes(parts[0])) continue;
+        if (parts.length < 2 || !this.settings.contextRoots.includes(parts[0])) continue;
         const node = fileNodeFor(dest.path);
         directIds.get(node.key)!.add(t.id);
       }

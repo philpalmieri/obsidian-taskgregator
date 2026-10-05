@@ -15,8 +15,8 @@ export interface SmartList {
 }
 
 export interface TaskgregatorSettings {
-  // Folders whose files become top-level context buckets.
-  bucketRoots: string[];
+  // Folders whose files become top-level navigation contexts.
+  contextRoots: string[];
   // Whether to scan only configured roots or every markdown file in the vault.
   scanScope: ScanScope;
   // Whether to show the context tree in the navigator.
@@ -27,7 +27,7 @@ export interface TaskgregatorSettings {
   ignoreFileTags: string[];
   // Exact frontmatter property rules in key=value form.
   ignoreFileProperties: string[];
-  // Treat these bucket roots as "inbox" style (group all tasks flat, not per-file).
+  // Treat these context roots as "inbox" style (group all tasks flat, not per-file).
   inboxRoots: string[];
   // Priority tags in order of importance (highest first).
   priorityTags: string[];
@@ -61,7 +61,7 @@ export interface TaskgregatorSettings {
 }
 
 export const DEFAULT_SETTINGS: TaskgregatorSettings = {
-  bucketRoots: ["Projects", "People", "Areas"],
+  contextRoots: ["Projects", "People", "Areas"],
   scanScope: "contextRoots",
   showContextTree: true,
   ignorePaths: ["Archive/", "Templates/"],
@@ -119,7 +119,7 @@ export class TaskgregatorSettingTab extends PluginSettingTab {
           {
             name: "Context roots",
             desc: "Comma-separated top-level folders whose files become navigation contexts.",
-            control: { type: "text", key: "bucketRoots" },
+            control: { type: "text", key: "contextRoots" },
             visible: () => this.plugin.settings.scanScope === "contextRoots",
           },
           {
@@ -243,8 +243,8 @@ export class TaskgregatorSettingTab extends PluginSettingTab {
     switch (key) {
       case "scanScope":
         return s.scanScope;
-      case "bucketRoots":
-        return s.bucketRoots.join(", ");
+      case "contextRoots":
+        return s.contextRoots.join(", ");
       case "showContextTree":
         return s.showContextTree;
       case "inboxRoots":
@@ -286,8 +286,8 @@ export class TaskgregatorSettingTab extends PluginSettingTab {
       case "scanScope":
         s.scanScope = normalizeScanScope(value);
         break;
-      case "bucketRoots":
-        s.bucketRoots = splitList(String(value));
+      case "contextRoots":
+        s.contextRoots = splitList(String(value));
         break;
       case "showContextTree":
         s.showContextTree = Boolean(value);
@@ -374,9 +374,9 @@ export class TaskgregatorSettingTab extends PluginSettingTab {
         .setDesc("Comma-separated top-level folders whose files become navigation contexts.")
         .addText((t) =>
           t
-            .setValue(this.plugin.settings.bucketRoots.join(", "))
+            .setValue(this.plugin.settings.contextRoots.join(", "))
             .onChange(async (v) => {
-              this.plugin.settings.bucketRoots = splitList(v);
+              this.plugin.settings.contextRoots = splitList(v);
               await this.plugin.saveSettings();
             })
         );

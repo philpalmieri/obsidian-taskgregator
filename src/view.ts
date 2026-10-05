@@ -328,10 +328,10 @@ export function sortTasksBy(tasks: TaskItem[], key: SortKey, dir: "asc" | "desc"
 }
 
 function refKey(t: TaskItem): string {
-  return `${t.bucketRoot}: ${t.bucketFile}`;
+  return `${t.contextRoot}: ${t.contextFile}`;
 }
 
-// Group tasks (already sorted) into ordered buckets. The "none" equivalent
+// Group already-sorted tasks. The "none" equivalent
 // (no priority / no due date) always sorts to the bottom.
 function groupTasks(
   tasks: TaskItem[],
@@ -354,8 +354,8 @@ function groupTasks(
       else if (p >= 1 && p <= 3) push("p" + p, "P" + p, p, t);
       else push("p-low", "Low", 4, t);
     } else if (key === "due") {
-      const bucket = dueBucket(t.meta.due);
-      push(bucket.id, bucket.label, bucket.sort, t);
+      const group = dueGroup(t.meta.due);
+      push(group.id, group.label, group.sort, t);
     } else {
       // reference
       const rk = refKey(t);
@@ -368,7 +368,7 @@ function groupTasks(
   return arr;
 }
 
-function dueBucket(due?: string): { id: string; label: string; sort: number } {
+function dueGroup(due?: string): { id: string; label: string; sort: number } {
   if (!due) return { id: "z-none", label: "No due date", sort: 999 };
   const today = todayStr();
   if (due < today) return { id: "overdue", label: "Overdue", sort: 0 };
