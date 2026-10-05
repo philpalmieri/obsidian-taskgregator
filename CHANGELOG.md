@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## 2.6.0
+
+Feature release. Taskgregator now supports flat whole-vault workflows, faster access to completed work, metadata-based file exclusions, and direct navigation to task lines.
 
 ### Added
 - **Completed-task visibility controls.** An eye toggle in the navigator header now shows or hides completed tasks across Taskgregator without opening Settings, and remembers the choice across restarts. The context sidebar has its own matching eye toggle before the due filters for quickly switching the current Page / Section / Reference scope to completed-only tasks.
