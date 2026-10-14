@@ -10,7 +10,6 @@ import {
   DV_KEYS,
   readDvDate,
   readDvField,
-  readDvPriority,
   stripDataviewFields,
 } from "./dataview";
 
@@ -118,7 +117,7 @@ export function parseLine(
     tags.push(tm[1]);
   }
 
-  // Priority: emoji first, then Dataview [priority:: ...], then priority tags.
+  // Priority: emoji first, then priority tags [priority:: ...].
   let priority = 0;
   for (const [em, p] of Object.entries(PRIORITY_EMOJI)) {
     if (body.includes(em)) {
@@ -126,10 +125,12 @@ export function parseLine(
       break;
     }
   }
-  if (priority === 0) priority = readDvPriority(body);
   if (priority === 0) {
-    for (let i = 0; i < settings.priorityTags.length; i++) {
+    for (let i = settings.priorityTags.length - 1; i >= 0; i--) {
       if (tags.includes(settings.priorityTags[i])) {
+        priority = i + 1;
+      }
+      if (readDvField(body, DV_KEYS.priority) == settings.priorityTags[i]) {
         priority = i + 1;
         break;
       }

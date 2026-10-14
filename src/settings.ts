@@ -68,7 +68,7 @@ export const DEFAULT_SETTINGS: TaskgregatorSettings = {
   ignoreFileTags: [],
   ignoreFileProperties: [],
   inboxRoots: ["Dailies"],
-  priorityTags: ["p1", "p2", "p3"],
+  priorityTags: ["high", "medium", "low"],
   smartLists: [
     { name: "Today", tag: "today", icon: "star" },
     { name: "Follow-up", tag: "followup", icon: "reply" },
@@ -157,7 +157,7 @@ export class TaskgregatorSettingTab extends PluginSettingTab {
         items: [
           {
             name: "Priority tags",
-            desc: "Highest-first, comma-separated (without #). E.g. p1, p2, p3.",
+            desc: "Highest-first, comma-separated (without #). E.g. highest, high, medium, low, lowest.",
             control: { type: "text", key: "priorityTags" },
           },
           {
@@ -442,7 +442,7 @@ export class TaskgregatorSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("Priority tags")
-      .setDesc("Highest-first, comma-separated without #, for example p1, p2, p3.")
+      .setDesc("Highest-first, comma-separated without #, for example highest, high, medium, low, lowest.")
       .addText((t) =>
         t
           .setValue(this.plugin.settings.priorityTags.join(", "))

@@ -4,7 +4,6 @@ import { TaskgregatorSettings } from "./settings";
 import { statusFromChar } from "./parser";
 import {
   DV_KEYS,
-  NUM_TO_DV_PRIORITY,
   TaskFormat,
   hasDataviewField,
   stripDvField,
@@ -128,7 +127,7 @@ export function applyPriorityToLine(
   out = out.replace(/\s{2,}/g, " ").trimEnd();
   if (priority < 1) return out;
   if (format === "dataview") {
-    const word = NUM_TO_DV_PRIORITY[priority];
+    const word = priorityTags[priority - 1];
     if (word) out = appendSignifier(out, `[${DV_KEYS.priority}:: ${word}]`);
   } else if (priority <= PRIORITY_EMOJI.length) {
     out = appendSignifier(out, PRIORITY_EMOJI[priority - 1]);

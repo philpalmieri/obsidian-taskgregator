@@ -183,7 +183,7 @@ export class TaskgregatorView extends ItemView {
       return;
     }
 
-    for (const group of groupTasks(sorted, this.state.groupBy)) {
+    for (const group of groupTasks(sorted, this.state.groupBy, this.deps.settings)) {
       const header = list.createDiv({ cls: "tg-group-header" });
       header.createSpan({ cls: "tg-group-label", text: group.label });
       header.createSpan({ cls: "tg-group-count", text: String(group.tasks.length) });
@@ -335,7 +335,8 @@ function refKey(t: TaskItem): string {
 // (no priority / no due date) always sorts to the bottom.
 function groupTasks(
   tasks: TaskItem[],
-  key: GroupKey
+  key: GroupKey,
+  settings: TaskgregatorSettings
 ): { label: string; sort: number; tasks: TaskItem[] }[] {
   const groups = new Map<string, { label: string; sort: number; tasks: TaskItem[] }>();
   const push = (id: string, label: string, sort: number, t: TaskItem) => {
@@ -351,8 +352,7 @@ function groupTasks(
     if (key === "priority") {
       const p = t.priority;
       if (p === 0) push("z-none", "No priority", 999, t);
-      else if (p >= 1 && p <= 3) push("p" + p, "P" + p, p, t);
-      else push("p-low", "Low", 4, t);
+      else push("p" + p, settings.priorityTags[p - 1], p, t);
     } else if (key === "due") {
       const group = dueGroup(t.meta.due);
       push(group.id, group.label, group.sort, t);

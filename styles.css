@@ -270,9 +270,35 @@
   margin-top: 2px;
 }
 .taskgregator .tg-prio svg { width: 15px; height: 15px; }
-.taskgregator .tg-prio.p1 { opacity: 1; color: #e5484d; }
-.taskgregator .tg-prio.p2 { opacity: 1; color: #f5a623; }
-.taskgregator .tg-prio.p3 { opacity: 1; color: #4c9aff; }
+
+@keyframes taskgregator-tg-prio {
+  0% {
+    color: #e5484d
+  }
+  50% {
+    color: #f5a623;
+  }
+  60% {
+    color: #dbb000;
+  }
+  70% {
+    color: #91c245;
+  }
+  80% {
+    color: #00c88e;
+  }
+  90% {
+    color: #00b5e6;
+  }
+  100% {
+    color: #4c9aff;
+  }
+}
+
+.taskgregator .tg-prio.has-prio {
+  opacity: 1;
+  animation: 100.1s linear calc(-1s * var(--priority)) paused taskgregator-tg-prio;
+}
 
 .taskgregator .tg-more {
   opacity: 0.4;

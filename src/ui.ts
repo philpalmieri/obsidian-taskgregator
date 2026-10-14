@@ -120,12 +120,18 @@ export function renderTaskRow(parent: HTMLElement, task: TaskItem, ctx: TaskRowC
   }
 
   // Priority flag.
-  const flag = row.createDiv({ cls: "tg-prio p" + task.priority });
+  const numberOfPriorityTags = ctx.writer.settings.priorityTags.length;
+
+  const flag = row.createDiv({ cls: "tg-prio" + (task.priority > 0 ? " has-prio" : " no-prio") });
   setIcon(flag, "flag");
   flag.setAttr("aria-label", "Cycle priority");
+  if (task.priority > 0) {
+    const priorityPercent = ((task.priority - 1) / (numberOfPriorityTags - 1)) * 100;
+    flag.setCssProps({ "--priority" : `${priorityPercent}` });
+  }
   flag.onclick = async () => {
-    const cur = task.priority >= 1 && task.priority <= 3 ? task.priority : task.priority > 3 ? 3 : 0;
-    const next = (cur + 1) % 4;
+    const cur = task.priority >= 1 && task.priority <= numberOfPriorityTags ? task.priority : task.priority > numberOfPriorityTags ? numberOfPriorityTags : 0;
+    const next = (cur + 1) % (numberOfPriorityTags + 1);
     await ctx.writer.setPriority(task, next);
     await ctx.reindexFile(task.filePath);
     ctx.rerender();
@@ -144,15 +150,14 @@ export function renderTaskRow(parent: HTMLElement, task: TaskItem, ctx: TaskRowC
 function taskMenu(e: MouseEvent, task: TaskItem, ctx: TaskRowCtx): void {
   const menu = new Menu();
 
-  // Priority: submenu if the platform supports it, else flat P1..P3 + None.
+  // Priority: submenu if the platform supports it, else flat priorityTags list + None.
   menu.addItem((item) => {
     item.setTitle("Priority").setIcon("flag");
-    const levels: Array<[string, number]> = [
-      ["None", 0],
-      ["P1 (high)", 1],
-      ["P2 (medium)", 2],
-      ["P3 (low)", 3],
-    ];
+      const levels: Array<[string, number]> = [
+        ["None", 0],
+        ...ctx.writer.settings.priorityTags.map((tag, index) => [`P${index + 1} (${tag})`, index + 1] as [string, number]),
+      ];
+
     const setPrio = async (lvl: number) => {
       await ctx.writer.setPriority(task, lvl);
       await ctx.reindexFile(task.filePath);
@@ -167,8 +172,9 @@ function taskMenu(e: MouseEvent, task: TaskItem, ctx: TaskRowCtx): void {
       }
     } else {
       item.onClick(() => {
-        const cur = task.priority >= 1 && task.priority <= 3 ? task.priority : task.priority > 3 ? 3 : 0;
-        void setPrio((cur + 1) % 4);
+        const numberOfPriorityTags = ctx.writer.settings.priorityTags.length;
+        const cur = task.priority >= 1 && task.priority <= numberOfPriorityTags ? task.priority : task.priority > numberOfPriorityTags ? numberOfPriorityTags : 0;
+        void setPrio((cur + 1) % (numberOfPriorityTags + 1));
       });
     }
   });

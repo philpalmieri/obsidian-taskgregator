@@ -40,24 +40,6 @@ export const DV_TASK_KEYS: string[] = [
   "dependsOn",
 ];
 
-// Dataview priority words -> Taskgregator numeric priority (1 highest .. 6
-// lowest, matching the emoji scale where 4 = normal/none).
-export const DV_PRIORITY_TO_NUM: Record<string, number> = {
-  highest: 1,
-  high: 2,
-  medium: 3,
-  low: 5,
-  lowest: 6,
-};
-
-export const NUM_TO_DV_PRIORITY: Record<number, string> = {
-  1: "highest",
-  2: "high",
-  3: "medium",
-  5: "low",
-  6: "lowest",
-};
-
 const DATE = "\\d{4}-\\d{2}-\\d{2}";
 
 /**
@@ -80,13 +62,6 @@ export function readDvDate(text: string, key: string): string | undefined {
 export function readDvField(text: string, key: string): string | undefined {
   const m = text.match(fieldRe(key));
   return m ? m[1].trim() : undefined;
-}
-
-/** Read the Dataview priority as a numeric level, or 0 if absent/unknown. */
-export function readDvPriority(text: string): number {
-  const raw = readDvField(text, DV_KEYS.priority);
-  if (!raw) return 0;
-  return DV_PRIORITY_TO_NUM[raw.toLowerCase()] ?? 0;
 }
 
 /** True if the line contains any recognized Dataview task field. */

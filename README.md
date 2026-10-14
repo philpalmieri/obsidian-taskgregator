@@ -147,7 +147,7 @@ When Taskgregator *writes* a date or priority, the **Task metadata format** sett
 - **Ignore paths**: path prefixes to exclude from indexing.
 - **Ignore file tags**: frontmatter tags whose notes should not be scanned, such as `template, checklist, reference`.
 - **Ignore file properties**: exact frontmatter `key=value` rules, one per line, such as `type=template` or `tasks=false`. Any matching tag or property excludes the entire note.
-- **Priority tags**: fallback priority tags (default `p1, p2, p3`).
+- **Priority tags**: fallback priority tags (default `high, medium, low`).
 - **Smart lists**: cross-cutting tag lists (`Name:tag` pairs).
 - **Detail-note folder**: where sidecars are stored (default `Taskgregator/tasksData`).
 - **Soon window (days)**: how many days ahead the **Soon** smart list looks (default 7).

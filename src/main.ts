@@ -358,10 +358,9 @@ export default class Taskgregator extends Plugin {
       item.setTitle("Taskgregator: Priority").setIcon("flag");
       const levels: Array<[string, number]> = [
         ["None", 0],
-        ["P1 (high)", 1],
-        ["P2 (medium)", 2],
-        ["P3 (low)", 3],
+        ...this.settings.priorityTags.map((tag, index) => [`P${index + 1} (${tag})`, index + 1] as [string, number]),
       ];
+
       const sub = (item as unknown as { setSubmenu?: () => Menu }).setSubmenu?.();
       if (sub) {
         for (const [label, lvl] of levels) {
@@ -376,9 +375,10 @@ export default class Taskgregator extends Plugin {
         // Fallback: single click cycles priority.
         item.onClick(async () => {
           const cur = parseLine(get(), filePath, lineNo, this.settings)?.priority ?? 0;
-          const c = cur >= 1 && cur <= 3 ? cur : cur > 3 ? 3 : 0;
+          const numberOfPriorityTags = this.settings.priorityTags.length;
+          const c = cur >= 1 && cur <= numberOfPriorityTags? cur : cur > numberOfPriorityTags? numberOfPriorityTags: 0;
           const def = await this.writer.resolveDefaultFormat();
-          set(applyPriorityToLine(get(), (c + 1) % 4, this.settings.priorityTags, formatForLine(get(), def)));
+          set(applyPriorityToLine(get(), (c + 1) % (numberOfPriorityTags + 1), this.settings.priorityTags, formatForLine(get(), def)));
         });
       }
     });
